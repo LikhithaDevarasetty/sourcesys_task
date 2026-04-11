@@ -49,9 +49,7 @@ I am interested in Data Science, Machine Learning, and Web Development.
 * Used **method overriding** in derived classes
 * Implemented **Polymorphism** using same method with different behaviors
 
-* # Task 6: Advanced Python Concepts
-
-## Topics Covered
+## Task 6: Advanced Python Concepts
 * **Iterators**
   * Implemented a custom iterator (Countdown system)
   * Used `__iter__()` and `__next__()` methods
