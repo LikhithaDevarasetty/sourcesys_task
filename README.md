@@ -49,5 +49,28 @@ I am interested in Data Science, Machine Learning, and Web Development.
 * Used **method overriding** in derived classes
 * Implemented **Polymorphism** using same method with different behaviors
 
+* # Task 6: Advanced Python Concepts
+
+## Topics Covered
+* **Iterators**
+  * Implemented a custom iterator (Countdown system)
+  * Used `__iter__()` and `__next__()` methods
+  * Demonstrates manual control over iteration
+* **Generators**
+  * Created a generator function to read file data line by line
+  * Used `yield` keyword for memory-efficient processing
+  * Suitable for handling large data
+* **Decorators**
+  * Implemented a login authentication system
+  * Used decorators to modify function behavior
+  * Improved code reusability
+* **Closure**
+  * Developed a discount calculator using closures
+  * Demonstrates how inner functions retain outer function variables
+* **Regular Expressions**
+  * Implemented email validation using `re` module
+  * Used pattern matching for data validation
+
+
 
 
