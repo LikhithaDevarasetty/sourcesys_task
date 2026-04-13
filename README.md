@@ -71,18 +71,18 @@ I am interested in Data Science, Machine Learning, and Web Development.
 
 ## Task7: NumPy Basics and Virtual Environment Setup
 * **Virtual Environment Setup**
-*Created a virtual environment using Python
-*Activated the virtual environment
-*Installed required libraries inside the environment
+* Created a virtual environment using Python
+* Activated the virtual environment
+* Installed required libraries inside the environment
 * **Commands Used:**
-*python -m venv venv
-*venv\Scripts\activate
-*pip install numpy
+* python -m venv venv
+* venv\Scripts\activate
+* pip install numpy
 * **Implemented basic operations using NumPy:**
-*Created arrays using np.array()
-*Generated arrays using np.zeros() and np.ones()
-*Performed arithmetic operations (addition, multiplication)
-*Used functions like mean(), sum(), and reshape()
+* Created arrays using np.array()
+* Generated arrays using np.zeros() and np.ones()
+* Performed arithmetic operations (addition, multiplication)
+* Used functions like mean(), sum(), and reshape()
 
 
 
