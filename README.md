@@ -84,5 +84,33 @@ I am interested in Data Science, Machine Learning, and Web Development.
   * Performed arithmetic operations (addition, multiplication)
   * Used functions like mean(), sum(), and reshape()
 
+## Task: NumPy Broadcasting
+* **Description**
+This project demonstrates **NumPy broadcasting**, which allows operations on arrays of different shapes without reshaping them.
+* **Examples Covered**
+  *Scalar broadcasting  
+  *Same shape operations  
+  *Row-wise and column-wise broadcasting  
+  *Higher dimensional broadcasting  
+  *Invalid case handling  
+* **Folder Structure**
+```
+Task7/
+│
+├── venv/                # Virtual Environment
+├── main.py              # Broadcasting implementation
+├── requirements.txt     # Dependencies
+├── .env                 # Environment variables
+├── .gitignore           # Ignored files
+├── README.md            # Documentation
+```
+* **Setup & Run**
+```
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python main.py
+```
+
 
 
