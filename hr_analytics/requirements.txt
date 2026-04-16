@@ -1,0 +1,10 @@
+# HR Analytics Mini Project - Requirements
+# This project uses only Python standard library modules.
+# No third-party packages are required.
+
+# Python version recommended: 3.8+
+
+# Standard library modules used (no installation needed):
+# - random       : Dataset generation
+# - statistics   : Mean, median, standard deviation
+# - collections  : defaultdict, Counter
