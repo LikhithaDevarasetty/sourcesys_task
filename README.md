@@ -236,4 +236,37 @@ This project covers advanced NumPy concepts for efficient computation, memory op
 
 ---
 
+## Task: Student Marks Analysis — Linear Algebra with NumPy
+
+A Python script demonstrating core linear algebra and data analysis concepts using a simulated student marks dataset (10 students × 5 subjects).
+
+---
+
+## Dataset
+
+- **Students:** Aarav, Bhavya, Charan, Divya, Esha, Farhan, Geetha, Harish, Isha, Jayanth  
+- **Subjects:** Maths, Physics, Chemistry, English, CS  
+- **Marks range:** 40.0 – 98.0 (seed = 7)
+
+---
+
+## Sections
+
+| # | Topic | What it covers |
+|---|-------|----------------|
+| 1 | Dataset Generation | Random marks → NumPy matrix (10×5) |
+| 2 | Matrix Representation | Shape, transpose, dtype, memory |
+| 3 | Vector Operations | Addition, dot product, norm, unit vector, projection |
+| 4 | Matrix Operations | Multiplication, Hadamard product, transpose |
+| 5 | Det · Trace · Rank · Inverse | Key matrix properties + invertibility check |
+| 6 | Linear System Ax = b | `np.linalg.solve` and `lstsq` |
+| 7 | Eigenvalues & Eigenvectors | Applied on student similarity matrix |
+| 8 | Cosine Similarity | Angular distance between student score vectors |
+| 9 | SVD | Low-rank approximation, energy per singular value |
+| 10 | Covariance Matrix | Mean-centring, variance, verified vs `np.cov` |
+| 11 | PCA | Manual PCA, explained variance, 2D projection |
+| 12 | Weighted Scores & Grades | Final scores via matrix multiplication + ranking |
+| 13 | Correlation Matrix | Subject-pair Pearson correlations |
+
+---
 
