@@ -3,12 +3,14 @@
 ##  Overview
 This project performs **data analysis on a student dataset** using Python (Pandas & NumPy).
 
+## Dataset
+The dataset file used: STUDENT.csv
 
 ### Features in Dataset
 - Name
 - Age
 - Attendance
-- Exam Score
+- Exam Scores
 - Video Games Time
 - Tuition
 - Health

@@ -1,19 +1,15 @@
-# ==========================================
-# 📌 IMPORT LIBRARIES
-# ==========================================
 import pandas as pd
 import numpy as np
 
 # ==========================================
-# 📌 LOAD ORIGINAL DATASET
+# LOAD ORIGINAL DATASET
 # ==========================================
 df_original = pd.read_csv("STUDENT.csv")   # ⚠️ check file name/path
 
 print("Initial Data:\n", df_original.head())
 
-
 # =========================================================
-# 🔥 COMMON CLEANING FUNCTION (FULL CLEANING)
+# COMMON CLEANING FUNCTION (FULL CLEANING)
 # =========================================================
 def clean_data(df):
     df = df.copy()
@@ -34,84 +30,84 @@ def clean_data(df):
 
 
 # =========================================================
-# ✅ 1. OPERATIONS
+# 1. OPERATIONS
 # =========================================================
 print("\n========== OPERATIONS ==========")
 
 df = clean_data(df_original)
 
-# 🔹 Basic Inspection
+# Basic Inspection
 print("\nShape:", df.shape)
 print("\nColumns:", df.columns)
 print("\nData Types:\n", df.dtypes)
 print("\nSummary:\n", df.describe())
 
-# 🔹 Missing Values Check
+# Missing Values Check
 print("\nMissing Values AFTER CLEANING:\n", df.isnull().sum())
 
-# 🔹 Column Selection
+# Column Selection
 print("\nSelected Columns:\n", df[["NAME", "EXAM SCORE"]].head())
 
-# 🔹 Sorting
+# Sorting
 print("\nTop Students (Sorted):\n",
       df.sort_values("EXAM SCORE", ascending=False).head())
 
-# 🔹 Mathematical Operations
+# Mathematical Operations
 print("\nMean Score:", df["EXAM SCORE"].mean())
 print("Max Score:", df["EXAM SCORE"].max())
 print("Min Score:", df["EXAM SCORE"].min())
 
-# 🔹 Grouping & Aggregation
+# Grouping & Aggregation
 print("\nAvg Score by Tuition:\n",
       df.groupby("TUTION")["EXAM SCORE"].mean())
 
 print("\nAvg Score by Health:\n",
       df.groupby("HEALTH")["EXAM SCORE"].mean())
 
-# 🔹 Feature Engineering
+# Feature Engineering
 df["PERFORMANCE"] = df["EXAM SCORE"].apply(
     lambda x: "Excellent" if x > 90 else "Average" if x > 70 else "Poor"
 )
 
 df["STATUS"] = np.where(df["EXAM SCORE"] > 75, "Pass", "Fail")
 
-# 🔹 Duplicate Handling
+# Duplicate Handling
 print("\nDuplicate Rows:", df.duplicated().sum())
 
-# 🔹 Rename Column
+#  Rename Column
 df = df.rename(columns={"EXAM SCORE": "SCORE"})
 
 
 # =========================================================
-# ✅ 2. FILTERS
+# 2. FILTERS
 # =========================================================
 print("\n========== FILTERS ==========")
 
 df = clean_data(df_original)
 df = df.rename(columns={"EXAM SCORE": "SCORE"})
 
-# 🔹 Single Condition
+# Single Condition
 print("\nHigh Scorers:\n", df[df["SCORE"] > 90])
 
 print("\nLow Attendance:\n", df[df["ATTENDANCE"] < 75])
 
 print("\nTuition Students:\n", df[df["TUTION"] == "yes"])
 
-# 🔹 Multiple Conditions
+# Multiple Conditions
 print("\nHigh Score + High Attendance:\n",
       df[(df["SCORE"] > 90) & (df["ATTENDANCE"] > 90)])
 
 print("\nGood Health & Low Stress:\n",
       df[(df["HEALTH"] == "GOOD") & (df["STRESS"] == "LOW")])
 
-# 🔹 OR Condition
+# OR Condition
 print("\nHigh Video Games OR Low Study:\n",
       df[(df["VIDEO GAMES"] > 2) | (df["SELF STUDY"] < 2)])
 
-# 🔹 NOT Condition
+# NOT Condition
 print("\nNo Tuition:\n", df[~(df["TUTION"] == "yes")])
 
-# 🔹 Advanced Filters
+#  Advanced Filters
 print("\nQuery Filter:\n",
       df.query("SCORE > 90 and ATTENDANCE > 90"))
 
@@ -123,14 +119,14 @@ print("\nHealth in GOOD:\n",
 
 
 # =========================================================
-# ✅ 3. DATA FIGURE-OUT (ANALYSIS)
+# 3. DATA FIGURE-OUT (ANALYSIS)
 # =========================================================
 print("\n========== DATA ANALYSIS ==========")
 
 df = clean_data(df_original)
 df = df.rename(columns={"EXAM SCORE": "SCORE"})
 
-# 🔹 Analysis
+# Analysis
 print("\nTuition vs Score:\n",
       df.groupby("TUTION")["SCORE"].mean())
 
@@ -153,9 +149,7 @@ print("\nStress Count:\n", df["STRESS"].value_counts())
 print("\nFinal Dataset:\n", df.head())
 
 
-# =========================================================
-# ✅ FINAL EXPORT (FULLY CLEAN)
-# =========================================================
+
 df = clean_data(df_original)
 
 df["PERFORMANCE"] = df["EXAM SCORE"].apply(
