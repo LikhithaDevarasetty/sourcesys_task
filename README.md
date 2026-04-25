@@ -270,3 +270,19 @@ A Python script demonstrating core linear algebra and data analysis concepts usi
 
 ---
 
+## Student Data Analysis System
+
+### Overview
+This project performs **data analysis on a student dataset** using Python (Pandas & NumPy).
+
+It includes:
+- Data cleaning (handling missing values)
+- Data operations (sorting, grouping, statistics)
+- Data filtering (conditions & queries)
+- Data analysis (insights & correlations)
+- Exporting cleaned dataset
+
+---
+
+## Dataset
+The dataset file used: STUDENT.csv
