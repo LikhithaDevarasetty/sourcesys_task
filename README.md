@@ -240,17 +240,17 @@ This project covers advanced NumPy concepts for efficient computation, memory op
 
 A Python script demonstrating core linear algebra and data analysis concepts using a simulated student marks dataset (10 students × 5 subjects).
 
----
 
-## Dataset
+
+### Dataset
 
 - **Students:** Aarav, Bhavya, Charan, Divya, Esha, Farhan, Geetha, Harish, Isha, Jayanth  
 - **Subjects:** Maths, Physics, Chemistry, English, CS  
 - **Marks range:** 40.0 – 98.0 (seed = 7)
 
----
 
-## Sections
+
+### Sections
 
 | # | Topic | What it covers |
 |---|-------|----------------|
@@ -268,7 +268,6 @@ A Python script demonstrating core linear algebra and data analysis concepts usi
 | 12 | Weighted Scores & Grades | Final scores via matrix multiplication + ranking |
 | 13 | Correlation Matrix | Subject-pair Pearson correlations |
 
----
 
 ## Student Data Analysis System
 
@@ -282,7 +281,32 @@ It includes:
 - Data analysis (insights & correlations)
 - Exporting cleaned dataset
 
----
 
-## Dataset
+### Dataset
 The dataset file used: STUDENT.csv
+
+
+## Student Data Cleaning
+
+This project focuses on **data cleaning** of a student dataset using Python (Pandas & NumPy).
+
+### Dataset
+`STUDENT.csv`
+
+
+
+### Steps Performed
+- Handled missing values  
+  - Numerical → mean/median  
+  - Categorical → default values  
+- Removed duplicates  
+- Converted data types to integers  
+- Applied proper rounding  
+- Standardized categorical values  
+
+
+### Output
+Cleaned dataset saved as:  
+`cleaned_student_data.csv`
+
+---

@@ -54,3 +54,28 @@ The dataset file used: STUDENT.csv
 
 ### 6. Output
 - Saves cleaned dataset to:final_output.csv
+
+## Student Data Cleaning
+
+This project focuses on **data cleaning** of a student dataset using Python (Pandas & NumPy).
+
+### Dataset
+`STUDENT.csv`
+
+
+
+### Steps Performed
+- Handled missing values  
+  - Numerical → mean/median  
+  - Categorical → default values  
+- Removed duplicates  
+- Converted data types to integers  
+- Applied proper rounding  
+- Standardized categorical values  
+
+
+### Output
+Cleaned dataset saved as:  
+`cleaned_student_data.csv`
+
+---
