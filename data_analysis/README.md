@@ -79,3 +79,31 @@ Cleaned dataset saved as:
 `cleaned_student_data.csv`
 
 ---
+
+## Student Data Grouping & Analysis
+
+### Overview
+This project performs **grouping and analysis** on a student dataset using Python (Pandas).
+
+### Operations Performed
+
+- Grouping by:
+  - Tuition
+  - Health
+  - Stress  
+
+- Multiple grouping:
+  - Tuition + Health  
+
+- Aggregation:
+  - Mean, Max, Min, Count  
+
+- Pivot Table creation  
+
+- Count analysis:
+  - Health distribution  
+  - Stress distribution  
+
+- Correlation analysis between numerical features  
+
+---
