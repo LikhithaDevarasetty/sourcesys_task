@@ -1,25 +1,16 @@
-"""
-==========================================================
- STUDENT DATA ANALYSIS DASHBOARD
- Frontend: Streamlit
-==========================================================
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 
-# -------------------------------------------------------
+
 # PAGE CONFIG
-# -------------------------------------------------------
 st.set_page_config(page_title="Student Analyzer", layout="wide")
 
 st.title("📊 Student Data Analysis Dashboard")
 st.write("Interactive analysis of student performance dataset")
 
-# -------------------------------------------------------
+
 # LOAD DATA
-# -------------------------------------------------------
 @st.cache_data
 def load_data():
     df = pd.read_csv("cleaned_student_data.csv")
@@ -33,9 +24,8 @@ def load_data():
 
 df = load_data()
 
-# -------------------------------------------------------
+
 # SIDEBAR OPTIONS
-# -------------------------------------------------------
 st.sidebar.header("🔍 Select Analysis")
 
 option = st.sidebar.selectbox(
@@ -51,25 +41,22 @@ option = st.sidebar.selectbox(
     ]
 )
 
-# -------------------------------------------------------
+
 # 1. DATASET OVERVIEW
-# -------------------------------------------------------
 if option == "Dataset Overview":
     st.subheader("📌 Dataset Overview")
     st.dataframe(df)
 
     st.write("Shape of dataset:", df.shape)
 
-# -------------------------------------------------------
+
 # 2. STATISTICS
-# -------------------------------------------------------
 elif option == "Statistical Summary":
     st.subheader("📈 Statistical Summary")
     st.write(df.describe())
 
-# -------------------------------------------------------
+
 # 3. GROUP ANALYSIS
-# -------------------------------------------------------
 elif option == "Group Analysis":
     st.subheader("📊 Group Analysis")
 
@@ -83,9 +70,8 @@ elif option == "Group Analysis":
 
     st.bar_chart(result)
 
-# -------------------------------------------------------
+
 # 4. TOP / LOW PERFORMERS
-# -------------------------------------------------------
 elif option == "Top / Low Performers":
     st.subheader("🏆 Performance Analysis")
 
@@ -96,9 +82,8 @@ elif option == "Top / Low Performers":
     else:
         st.dataframe(df.sort_values(by="EXAM SCORE").head(10))
 
-# -------------------------------------------------------
+
 # 5. FILTER DATA
-# -------------------------------------------------------
 elif option == "Filter Data":
     st.subheader("🔍 Filter Students")
 
@@ -113,9 +98,8 @@ elif option == "Filter Data":
     st.write("Filtered Results:")
     st.dataframe(filtered)
 
-# -------------------------------------------------------
+
 # 6. CORRELATION
-# -------------------------------------------------------
 elif option == "Correlation":
     st.subheader("🔗 Correlation Matrix")
 
@@ -124,9 +108,8 @@ elif option == "Correlation":
 
     st.line_chart(corr)
 
-# -------------------------------------------------------
+
 # 7. CUSTOM INSIGHTS
-# -------------------------------------------------------
 elif option == "Custom Insights":
     st.subheader("💡 Insights")
 
@@ -142,7 +125,3 @@ elif option == "Custom Insights":
     st.write("🎮 Avg Score (More Gaming >2 hrs):", round(more_games, 2))
     st.write("🎮 Avg Score (Less Gaming ≤2 hrs):", round(less_games, 2))
 
-# -------------------------------------------------------
-# FOOTER
-# -------------------------------------------------------
-st.sidebar.write("Developed using Streamlit + Pandas + NumPy")
