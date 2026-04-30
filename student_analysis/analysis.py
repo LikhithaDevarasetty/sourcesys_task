@@ -19,9 +19,19 @@ print("\n--- MISSING VALUES ---")
 print(df.isnull().sum())
 
 # Fill missing values
-df["AGE"].fillna(df["AGE"].mean(), inplace=True)
-df["ATTENDANCE"].fillna(df["ATTENDANCE"].mean(), inplace=True)
-df["EXAM SCORE"].fillna(df["EXAM SCORE"].mean(), inplace=True)
+df["AGE"] = df["AGE"].fillna(df["AGE"].mean()).round().astype(int)
+df["ATTENDANCE"] = df["ATTENDANCE"].fillna(df["ATTENDANCE"].mean()).round().astype(int)
+df["EXAM SCORE"] = df["EXAM SCORE"].fillna(df["EXAM SCORE"].median()).astype(int)
+
+# Replace missing with default values
+df["VIDEO GAMES"] = df["VIDEO GAMES"].fillna(0).round().astype(int)
+df["SELF STUDY"] = df["SELF STUDY"].fillna(0).astype(int)
+
+# Categorical columns
+df["TUTION"] = df["TUTION"].fillna("no")
+df["HEALTH"] = df["HEALTH"].fillna("UNKNOWN")
+df["STRESS"] = df["STRESS"].fillna("UNKNOWN")
+
 
 print("\nMissing values handled.\n")
 
