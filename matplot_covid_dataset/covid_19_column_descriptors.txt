@@ -1,0 +1,11 @@
+Column Descriptors:
+country: Name of the country
+code: Country code
+confirmed: Number of confirmed COVID-19 cases
+recovered: Number of recovered cases
+critical: Number of critical cases
+deaths: Number of deaths
+lastChange: Timestamp of the last data change
+lastUpdate: Timestamp of the last data update
+latitude: Geographical latitude of the country
+longitude: Geographical longitude of the country
