@@ -1,6 +1,6 @@
-# 📊 COVID-19 Data Visualization using Matplotlib
+# COVID-19 Data Visualization using Matplotlib
 
-## 📌 Overview
+## Overview
 
 This project focuses on visualizing COVID-19 data using **Matplotlib**.  
 
