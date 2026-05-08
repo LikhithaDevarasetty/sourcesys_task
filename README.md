@@ -391,7 +391,7 @@ This project covers around **30 important Matplotlib concepts**:
 ---
 # COVID-19 Data Visualization using Matplotlib
 
-## 📌 Overview
+## Overview
 
 This project focuses on visualizing COVID-19 data using **Matplotlib**.  
 
@@ -507,9 +507,163 @@ Adds geometric shapes to visualization
 
 ---
 
-### How to Run
+# Weather Data Analysis & Visualization (Time Series)
 
-1. Install required libraries:
+##  Overview
 
-```bash
-pip install matplotlib pandas numpy
+This project performs **data analysis and visualization** on a weather time-series dataset using Python.
+
+It explores different weather parameters such as:
+- Temperature
+- Humidity
+- Wind Speed
+- Pressure
+- UV Index
+
+Various types of graphs are used to understand trends, distributions, and relationships in the dataset.
+
+---
+
+##  Technologies Used
+
+- Python  
+- Pandas  
+- NumPy  
+- Matplotlib  
+
+---
+
+##  Graphs Used and Their Purpose
+
+### 1. Line Chart  
+Shows temperature changes over time  
+
+### 2. Bar Chart  
+Displays average temperature for each day  
+
+### 3. Pie Chart  
+Shows distribution of weather conditions  
+
+### 4. Histogram  
+Displays distribution of temperature values  
+
+### 5. Scatter Plot  
+Shows relationship between temperature and humidity  
+
+### 6. Box Plot  
+Shows temperature spread and outliers per day  
+
+### 7. Area Chart  
+Shows humidity trend over time  
+
+### 8. Donut Chart  
+Displays wind speed categories  
+
+### 9. Heatmap  
+Shows average temperature by hour and day  
+
+### 10. Violin Plot  
+Shows humidity distribution per day  
+
+### 11. Horizontal Bar Chart  
+Shows average values of weather parameters  
+
+### 12. Step Chart  
+Shows average UV index by hour  
+
+### 13. Dual Axis Plot  
+Compares temperature and pressure over time  
+
+### 14. Pie Chart  
+Shows ratio of daytime vs nighttime data  
+
+### 15. Line Chart  
+Compares wind speed and wind gust  
+
+### 16. Histogram  
+Shows wind speed distribution  
+
+---
+
+# Regression
+
+## House Price Prediction using Linear Regression
+
+This project uses Linear Regression to predict house prices using machine learning.
+
+### Technologies Used
+- Python
+- Pandas
+- NumPy
+- Matplotlib
+- Scikit-learn
+
+### Dataset
+The dataset contains house details like:
+- bedrooms
+- bathrooms
+- floors
+- square footage
+- city
+- price
+
+Target column:
+price
+
+### Features
+- Data preprocessing
+- Label encoding
+- Train-test split
+- Linear Regression model
+- Price prediction
+- Performance evaluation
+- Graph visualization
+
+### Evaluation Metrics
+- Mean Absolute Error (MAE)
+- Mean Squared Error (MSE)
+- Root Mean Squared Error (RMSE)
+- R2 Score
+
+### Graphs
+- Actual vs Predicted Graph
+- Residual Plot
+- Feature Coefficients Graph
+---
+## Heart Disease Prediction using Logistic Regression
+
+This project uses Logistic Regression to predict whether a person has heart disease or not.
+
+### Technologies Used
+- Python
+- Pandas
+- NumPy
+- Matplotlib
+- Scikit-learn
+
+### Dataset
+The dataset contains medical details like:
+- age
+- cholesterol
+- chest pain
+- blood pressure
+- heart rate
+
+Target column:
+target
+
+0 = No Disease
+1 = Disease
+
+### Features
+- Data preprocessing
+- Train-test split
+- Feature scaling
+- Logistic Regression model
+- Disease prediction
+- Performance evaluation
+
+### Evaluation Metrics
+- Accuracy Score
+- Confusion Matrix
+- Classification Report
