@@ -667,3 +667,96 @@ target
 - Accuracy Score
 - Confusion Matrix
 - Classification Report
+---
+
+## Heart Disease Prediction – ML Classification
+
+A machine learning project that predicts heart disease using **KNN**, **Random Forest**, and **Multinomial Naive Bayes** classifiers. Models are trained, evaluated, and tuned using **GridSearchCV**.
+
+---
+
+### Dataset
+
+**File:** `heart.csv`
+**Rows:** 303 | **Columns:** 14
+
+**Target Column:**
+
+* `1` → Heart Disease
+* `0` → No Disease
+
+---
+
+### Files Overview
+
+#### `preprocessing.py`
+
+* Loads dataset
+* Splits train/test data
+* Applies:
+
+  * `StandardScaler` for KNN
+  * `MinMaxScaler` for Multinomial NB
+
+---
+
+#### `knn_model.py`
+
+* Finds best K value
+* Trains KNN model
+* Applies GridSearchCV
+* Evaluates using accuracy and confusion matrix
+
+---
+
+#### `random_forest_model.py`
+
+* Trains Random Forest model
+* Shows feature importance
+* Applies GridSearchCV
+* Evaluates model performance
+
+---
+
+#### `naive_bayes_model.py`
+
+* Uses Multinomial Naive Bayes
+* Uses MinMax scaled data
+* Tunes `alpha` using GridSearchCV
+
+---
+
+#### `model_comparison.py`
+
+* Compares all models
+* Displays accuracy comparison
+* Generates ROC curves and plots
+
+---
+
+### Models Used
+
+| Model          | Purpose                            |
+| -------------- | ---------------------------------- |
+| KNN            | Distance-based classification      |
+| Random Forest  | Ensemble tree-based classification |
+| Multinomial NB | Probabilistic classification       |
+
+---
+
+### Methodology
+
+* Train-Test Split: 80/20
+* Cross Validation: 5-Fold
+* Hyperparameter Tuning: GridSearchCV
+* Evaluation Metrics:
+
+  * Accuracy
+  * Precision
+  * Recall
+  * F1-Score
+  * ROC-AUC
+  * Confusion Matrix
+
+---
+
