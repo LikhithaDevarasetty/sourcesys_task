@@ -172,7 +172,7 @@ def login_page():
 # ══════════════════════════════════════════════════════════════════════════════
 @st.cache_data
 def load_data():
-    df = pd.read_csv("student_data.csv")
+    df = pd.read_csv("application/student_data.csv")
     df.columns = df.columns.str.strip()
     df["NAME"] = df["NAME"].str.title()
     df["TUTION"] = df["TUTION"].str.lower()
