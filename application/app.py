@@ -17,15 +17,14 @@ st.set_page_config(
 
 # ── GOOGLE OAUTH CONFIG ─────────────────────
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+CLIENT_ID = st.secrets["CLIENT_ID"]
+CLIENT_SECRET = st.secrets["CLIENT_SECRET"]
 
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/auth"
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 
-REDIRECT_URI = "http://localhost:8501/"
+REDIRECT_URI = "https://likhithadevarasetty-sourcesys-task-applicationapp-dhqseu.streamlit.app/component/streamlit_oauth.authorize_button"
 
 
 # ── global styles ──────────────────────────────────────────────────────────────
