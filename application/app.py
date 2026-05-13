@@ -2,8 +2,11 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import os
+from dotenv import load_dotenv
 from streamlit_oauth import OAuth2Component
 
+load_dotenv()
 # ── page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Student Analytics",
@@ -14,15 +17,16 @@ st.set_page_config(
 
 # ── GOOGLE OAUTH CONFIG ─────────────────────
 
-CLIENT_ID = "TEMP"
+CLIENT_ID = os.getenv("CLIENT_ID")
 
-CLIENT_SECRET = "TEMP"
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/auth"
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 
-REDIRECT_URI = "http://localhost:8501/callback"
+REDIRECT_URI = "http://localhost:8501/"
+
 
 # ── global styles ──────────────────────────────────────────────────────────────
 st.markdown(
@@ -98,12 +102,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── hardcoded credentials (demo) ───────────────────────────────────────────────
-USERS = {
-    "admin":   "admin123",
-    "teacher": "teacher@2024",
-    "viewer":  "view123",
-}
+
 
 # ── session state bootstrap ────────────────────────────────────────────────────
 if "logged_in" not in st.session_state:
@@ -125,30 +124,45 @@ def login_page():
         """,
         unsafe_allow_html=True,
     )
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # centre the form using columns
-    _, col, _ = st.columns([1, 1.6, 1])
+    # OAuth component
+    oauth2 = OAuth2Component(
+        CLIENT_ID,
+        CLIENT_SECRET,
+        AUTHORIZE_URL,
+        TOKEN_URL,
+        TOKEN_URL,
+    )
+
+    _, col, _ = st.columns([1, 1.5, 1])
+
     with col:
-        st.write("")
-        username = st.text_input("Username", placeholder="Enter username")
-        password = st.text_input("Password", type="password", placeholder="Enter password")
-        st.write("")
-        login_btn = st.button("Sign In →", width='stretch', type="primary")
 
-        if login_btn:
-            if username in USERS and USERS[username] == password:
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.success("Login successful! Loading dashboard…")
-                st.rerun()
-            elif username == "" or password == "":
-                st.warning("Please fill in both fields.")
-            else:
-                st.error("Incorrect username or password.")
+        result = oauth2.authorize_button(
+            name=" Continue with Google",
+            icon="https://www.google.com/favicon.ico",
+            redirect_uri=REDIRECT_URI,
+            scope="openid email profile",
+            key="google",
+            use_container_width=True,
+        )
 
+        # after successful login
+        if result and "token" in result:
+
+            user_info = result["token"]
+
+            st.session_state.logged_in = True
+            st.session_state.username = "Google User"
+
+            st.success("Login successful!")
+            st.rerun()
+            
         st.markdown(
             "<div style='margin-top:20px; text-align:center; color:#6b7280; font-size:12px;'>"
-            "Demo credentials &nbsp;|&nbsp; admin / admin123"
+           
             "</div>",
             unsafe_allow_html=True,
         )
