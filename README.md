@@ -806,41 +806,53 @@ BMI = weight (kg) / height (m)²
 - Pure Python — no extra data science libraries needed
 
 ---
+## Data Visualization Dashboard
 
-#  Superstore Sales Dashboard
-
-A complete interactive sales dashboard built using Streamlit, Pandas, Matplotlib, and Seaborn.
-
-This project visualizes Superstore sales data using multiple chart types and interactive filters.
+A Streamlit-based interactive dashboard that lets you upload your own Excel or CSV file and instantly generate different types of charts — no sample data, no hardcoded datasets. Everything is driven by your file.
 
 ---
 
-##  Features
 
-- Upload CSV or Excel files
-- Interactive sidebar filters
-- KPI metrics
-- Multiple professional visualizations
-- Raw data viewer
-- Responsive Streamlit layout
+### Supported File Formats
+
+| Format | Extension |
+|--------|-----------|
+| Excel  | `.xlsx`, `.xls` |
+| CSV    | `.csv` |
+
+Multi-sheet Excel files are supported — a sheet selector will appear automatically in the sidebar.
 
 ---
 
-##  Charts Included
+###  Available Chart Types
 
-1. Sales by Sub-Category
-2. Sales by Segment
-3. Monthly Sales Trend
-4. Sales by Region & Ship Mode
-5. Category × Region Heatmap
-6. Sales Distribution Box Plot
-7. Yearly Sales Stacked Bar
-8. Sales Histogram
-9. Shipping Days Violin Plot
-10. Orders by Segment
-11. Bubble Chart
-12. Quarterly Sales Area Chart
-13. Top Customers Lollipop Chart
-14. Calendar Heatmap
+| Chart | Best Used For |
+|-------|--------------|
+| **Bar Chart** | Comparing totals across categories |
+| **Line Chart** | Trends over time or ordered values |
+| **Scatter Plot** | Relationship between two numeric variables |
+| **Pie / Donut Chart** | Part-to-whole proportions |
+| **Histogram** | Distribution of a numeric column |
+| **Box Plot** | Spread and outliers in numeric data |
+| **Area Chart** | Cumulative or stacked trends over time |
+| **Heatmap (Correlation)** | Correlation between all numeric columns |
+
+---
+
+
+###  Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `streamlit` | Web app framework |
+| `pandas` | Data loading and manipulation |
+| `plotly` | Interactive charts |
+| `openpyxl` | Reading `.xlsx` Excel files |
+
+Install all at once:
+
+```bash
+pip install -r requirements.txt
+```
 
 ---

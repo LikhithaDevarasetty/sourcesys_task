@@ -1,84 +1,91 @@
-#  Superstore Sales Dashboard
+# Data Visualization Dashboard
 
-A complete interactive sales dashboard built using Streamlit, Pandas, Matplotlib, and Seaborn.
-
-This project visualizes Superstore sales data using multiple chart types and interactive filters.
+A Streamlit-based interactive dashboard that lets you upload your own Excel or CSV file and instantly generate different types of charts — no sample data, no hardcoded datasets. Everything is driven by your file.
 
 ---
 
-##  Features
+## Project Structure
 
-- Upload CSV or Excel files
-- Interactive sidebar filters
-- KPI metrics
-- Multiple professional visualizations
-- Raw data viewer
-- Responsive Streamlit layout
-
----
-
-##  Charts Included
-
-1. Sales by Sub-Category
-2. Sales by Segment
-3. Monthly Sales Trend
-4. Sales by Region & Ship Mode
-5. Category × Region Heatmap
-6. Sales Distribution Box Plot
-7. Yearly Sales Stacked Bar
-8. Sales Histogram
-9. Shipping Days Violin Plot
-10. Orders by Segment
-11. Bubble Chart
-12. Quarterly Sales Area Chart
-13. Top Customers Lollipop Chart
-14. Calendar Heatmap
+```
+streamlit_graphs/
+│
+├── graph_dashboard.py   # Main Streamlit app
+├── requirements.txt     # Python dependencies
+└── README.md            # This file
+```
 
 ---
 
-##  Technologies Used
+## Requirements
 
-- Python
-- Streamlit
-- Pandas
-- Matplotlib
-- Seaborn
-- NumPy
+- Python 3.8 or higher
+- pip (Python package installer)
 
 ---
 
-##  Dataset
 
-Recommended Dataset:
-Superstore Sales Dataset
+## Supported File Formats
 
-Required columns:
+| Format | Extension |
+|--------|-----------|
+| Excel  | `.xlsx`, `.xls` |
+| CSV    | `.csv` |
 
-- Order ID
-- Order Date
-- Ship Date
-- Ship Mode
-- Customer Name
-- Segment
-- Country
-- City
-- State
-- Region
-- Category
-- Sub-Category
-- Sales
+Multi-sheet Excel files are supported — a sheet selector will appear automatically in the sidebar.
 
 ---
 
-##  Project Structure
+##  Available Chart Types
+
+| Chart | Best Used For |
+|-------|--------------|
+| **Bar Chart** | Comparing totals across categories |
+| **Line Chart** | Trends over time or ordered values |
+| **Scatter Plot** | Relationship between two numeric variables |
+| **Pie / Donut Chart** | Part-to-whole proportions |
+| **Histogram** | Distribution of a numeric column |
+| **Box Plot** | Spread and outliers in numeric data |
+| **Area Chart** | Cumulative or stacked trends over time |
+| **Heatmap (Correlation)** | Correlation between all numeric columns |
+
+---
+
+
+##  Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `streamlit` | Web app framework |
+| `pandas` | Data loading and manipulation |
+| `plotly` | Interactive charts |
+| `openpyxl` | Reading `.xlsx` Excel files |
+
+Install all at once:
 
 ```bash
-project-folder/
-│
-├── app.py
-├── train.csv
-├── requirements.txt
-└── README.md
+pip install -r requirements.txt
 ```
+
+---
+
+##  Download
+
+After viewing your chart, expand the **"Download dataset as CSV"** section at the bottom of the page to download your loaded data.
+
+---
+
+### Common Issues
+
+**App doesn't open automatically**
+Run `streamlit run graph_dashboard.py` and manually open `http://localhost:8501` in your browser.
+
+**`ModuleNotFoundError`**
+Make sure you installed dependencies with `pip install -r requirements.txt` and your virtual environment is activated.
+
+**Excel file not loading**
+Ensure `openpyxl` is installed. It is required for `.xlsx` support.
+
+**Date columns not detected**
+The app auto-detects text columns that look like dates. If detection fails, convert the column to a proper date format in Excel before uploading.
 
 ---
