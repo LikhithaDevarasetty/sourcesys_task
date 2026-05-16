@@ -7,7 +7,7 @@ from pathlib import Path
 
 # ── page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="InsightFlow Dashboard",
+    page_title="SalesVision Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -232,7 +232,7 @@ with st.sidebar:
     st.markdown(f"""
     <div class="logo-bar">
         <img src="data:image/png;base64,{LOGO}" />
-        <div class="logo-bar-text">InsightFlow<br>Dashboard</div>
+        <div class="logo-bar-text">SalesVision<br>Dashboard</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -282,7 +282,7 @@ with col_logo:
 with col_title:
     st.markdown("""
     <h1 style='margin:0; padding-top:10px; font-size:2rem; letter-spacing:0.05em;'>
-        InsightFlow Dashboard
+        SalesVision Dashboard
     </h1>
     <p style='color:#7088cc; margin:0; font-size:0.85rem;'>
         Sales Intelligence · Built with Streamlit & Plotly
@@ -432,6 +432,6 @@ chart_box("🏙️ Top 10 States by Sales", fig_state)
 st.markdown("""
 <div style='text-align:center; color:#3a4a88; font-size:0.75rem; margin-top:40px; padding-top:20px;
             border-top:1px solid rgba(80,100,255,0.15);'>
-    InsightFlow Dashboard · Built with Streamlit & Plotly
+    SalesVision Dashboard · Built with Streamlit & Plotly
 </div>
 """, unsafe_allow_html=True)
