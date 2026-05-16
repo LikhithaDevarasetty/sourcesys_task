@@ -14,8 +14,12 @@ st.set_page_config(
 )
 
 # ── helpers ───────────────────────────────────────────────────────────────────
-def img_to_b64(path):
-    return base64.b64encode(Path(path).read_bytes()).decode()
+# BASE_DIR resolves to the folder where dashboard.py lives, so file
+# lookups work correctly both locally and on Streamlit Cloud.
+BASE_DIR = Path(__file__).parent.resolve()
+
+def img_to_b64(filename):
+    return base64.b64encode((BASE_DIR / filename).read_bytes()).decode()
 
 BG   = img_to_b64("bg.png")
 LOGO = img_to_b64("logo.png")
@@ -186,7 +190,7 @@ footer {{visibility: hidden;}}
 # ── load data ─────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    df = pd.read_csv("train.csv")
+    df = pd.read_csv(BASE_DIR / "train.csv")
     df["Order Date"] = pd.to_datetime(df["Order Date"], dayfirst=True)
     df["Ship Date"]  = pd.to_datetime(df["Ship Date"],  dayfirst=True)
     df["Year"]       = df["Order Date"].dt.year
@@ -274,7 +278,7 @@ if fdf.empty:
 # ── top logo bar ──────────────────────────────────────────────────────────────
 col_logo, col_title = st.columns([1, 8])
 with col_logo:
-    st.image("logo.png", width=80)
+    st.image(str(BASE_DIR / "logo.png"), width=80)
 with col_title:
     st.markdown("""
     <h1 style='margin:0; padding-top:10px; font-size:2rem; letter-spacing:0.05em;'>
