@@ -282,7 +282,7 @@ with col_logo:
 with col_title:
     st.markdown("""
     <h1 style='margin:0; padding-top:10px; font-size:2rem; letter-spacing:0.05em;'>
-        AI Analytics Dashboard
+        InsightFlow Dashboard
     </h1>
     <p style='color:#7088cc; margin:0; font-size:0.85rem;'>
         Sales Intelligence · Built with Streamlit & Plotly
