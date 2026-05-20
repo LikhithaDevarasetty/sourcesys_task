@@ -37,8 +37,9 @@ def seed_demo_user():
     user = repo.get_user_by_email(email)
     print(f"Demo user created with ID: {user.id}")
 
-    income_file = "archive (1)/Income_clean.csv"
-    expenses_file = "archive (1)/Expenses_clean.csv"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    income_file = os.path.join(BASE_DIR, "archive (1)", "Income_clean.csv")
+    expenses_file = os.path.join(BASE_DIR, "archive (1)", "Expenses_clean.csv")
 
     # --- Seeding Income ---
     income_count = 0
