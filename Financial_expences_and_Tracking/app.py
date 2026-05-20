@@ -592,6 +592,20 @@ try:
 except Exception as e:
     logger.warning(f"Category setup status: {e}")
 
+# Auto-seed demo user on first startup (ensures demo data exists on deployment)
+if "demo_seeded" not in st.session_state:
+    st.session_state.demo_seeded = True
+    try:
+        demo_email = "demo@rupeetracker.com"
+        existing_demo = repo.get_user_by_email(demo_email)
+        if not existing_demo:
+            logger.info("Demo user not found — auto-seeding demo data...")
+            from seed_demo_user import seed_demo_user
+            seed_demo_user()
+            logger.info("Demo user auto-seeded successfully.")
+    except Exception as e:
+        logger.warning(f"Demo auto-seed skipped: {e}")
+
 # ---- Authentication Infrastructure ----
 from services.auth import create_token, decode_token, token_expired
 from services.auth import create_action_token, verify_action_token
