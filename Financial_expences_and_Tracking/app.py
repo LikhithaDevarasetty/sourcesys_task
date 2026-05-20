@@ -598,8 +598,16 @@ if "demo_seeded" not in st.session_state:
     try:
         demo_email = "demo@rupeetracker.com"
         existing_demo = repo.get_user_by_email(demo_email)
+        needs_seed = False
         if not existing_demo:
-            logger.info("Demo user not found — auto-seeding demo data...")
+            needs_seed = True
+        else:
+            # Also re-seed if user exists but has no transactions (failed previous seed)
+            txs = repo.list_transactions_for_user(existing_demo.id, limit=1)
+            if not txs:
+                needs_seed = True
+        if needs_seed:
+            logger.info("Demo user missing or empty — auto-seeding demo data...")
             from seed_demo_user import seed_demo_user
             seed_demo_user()
             logger.info("Demo user auto-seeded successfully.")
