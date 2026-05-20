@@ -1,0 +1,12 @@
+streamlit
+pandas
+numpy
+plotly
+pyjwt
+bcrypt
+python-dotenv
+SQLAlchemy
+pydantic
+jinja2
+tenacity
+
