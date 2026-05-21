@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from dotenv import load_dotenv
 from datetime import datetime, timezone
 
 # ---- Page Configuration ----
@@ -11,16 +10,16 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ---- Load Environment & Logger ----
+# ---- Load Config & Logger ----
+from services.config import get_config
 from services.logger import get_logger
 from db.repository import Repository
 
-load_dotenv()
 logger = get_logger()
 
 # ---- Premium Theme & UI Styling (Global Overrides) ----
 if "theme" not in st.session_state:
-    st.session_state.theme = os.getenv("DEFAULT_THEME", "dark")
+    st.session_state.theme = get_config("app", "default_theme", default="dark")
 
 # Custom UI Injection based on theme choice (Premium Glassmorphism & High Fidelity Contrast)
 if st.session_state.theme == "dark":
@@ -581,7 +580,7 @@ st.markdown(
 st.markdown('<div id="a11y-announcer" aria-live="polite" style="position:absolute;left:-9999px"></div>', unsafe_allow_html=True)
 
 # ---- Database Setup ----
-database_url = os.getenv("DATABASE_URL", "sqlite:///finance_app.db")
+database_url = get_config("database", "url", default="sqlite:///finance_app.db")
 repo = Repository(database_url)
 repo.init()
 
@@ -1001,6 +1000,7 @@ st.markdown("<hr/>", unsafe_allow_html=True)
 # ---- Global Budget Notification Checks ----
 if user:
     from services.budgets import evaluate_budgets
+    from services.emailer import send_budget_warning_email, send_budget_breach_email
     try:
         active_budgets = evaluate_budgets(repo, user.id)
         for b in active_budgets:
@@ -1010,13 +1010,28 @@ if user:
                 cats = repo.list_categories(user.id)
                 label_name = next((c.name for c in cats if c.id == b["category_id"]), "Category Group")
             
-            # Budget Notification Render
+            # Budget Notification Render (existing UI banners — unchanged)
             if b["ratio"] >= 1.0:
                 st.error(f"🚨 **Critical Budget Alert!** You have breached your maximum limit for **{label_name}**. (Spent ₹{b['spent']:,.2f} of ₹{b['limit']:,.2f})")
             elif b["ratio"] >= 0.8:
                 st.warning(f"⚠️ **Warning Alert!** You have consumed **{int(b['ratio']*100)}%** of your allowed budget cap for **{label_name}**.")
             else:
                 st.success(f"✅ **Budget Safe!** Your spending for **{label_name}** is well within limits. (Spent ₹{b['spent']:,.2f} out of ₹{b['limit']:,.2f})")
+
+            # Budget Email Alerts (sent once per session per budget per status)
+            email_flag_key = f"budget_email_sent_{b['id']}_{b['status']}"
+            if email_flag_key not in st.session_state:
+                st.session_state[email_flag_key] = True
+                try:
+                    if b["status"] == "red":
+                        over_amount = b["spent"] - b["limit"]
+                        send_budget_breach_email(user_email, label_name, b["spent"], b["limit"], over_amount)
+                        logger.info("Budget breach email sent for '%s' to %s", label_name, user_email)
+                    elif b["status"] == "orange":
+                        send_budget_warning_email(user_email, label_name, b["spent"], b["limit"], int(b["ratio"] * 100))
+                        logger.info("Budget warning email sent for '%s' to %s", label_name, user_email)
+                except Exception as e:
+                    logger.warning("Budget alert email failed for '%s': %s", label_name, e)
     except Exception as e:
         logger.warning(f"Budget evaluator scanner trace issue: {e}")
 

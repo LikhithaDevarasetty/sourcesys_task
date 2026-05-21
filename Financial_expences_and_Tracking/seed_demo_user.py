@@ -14,7 +14,11 @@ logger = get_logger("finance_app.seed_demo")
 
 
 def seed_demo_user():
-    database_url = os.getenv("DATABASE_URL", "sqlite:///finance_app.db")
+    try:
+        from services.config import get_config
+        database_url = get_config("database", "url", default="sqlite:///finance_app.db")
+    except Exception:
+        database_url = os.getenv("DATABASE_URL", "sqlite:///finance_app.db")
     repo = Repository(database_url)
     repo.init()
 

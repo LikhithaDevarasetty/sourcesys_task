@@ -71,11 +71,10 @@ All data is **user-isolated** — each account only sees its own transactions, c
 ## 📁 Project Structure
 
 ```
-newProject/
-├── .env                        # Environment variables (secrets, SMTP config)
-├── .env.example                # Template for .env setup
+Financial_expences_and_Tracking/
 ├── .streamlit/
-│   └── config.toml             # Streamlit server configuration
+│   ├── config.toml             # Streamlit server configuration
+│   └── secrets.toml            # All app secrets & config (TOML format)
 ├── app.py                      # Main application (UI, routing, all pages)
 ├── requirements.txt            # Python dependencies
 ├── finance_app.db              # SQLite database (auto-created on first run)
@@ -89,6 +88,7 @@ newProject/
 │   └── utils.py                # Database utility helpers
 │
 ├── services/                   # Business logic layer
+│   ├── config.py               # Centralized config reader (reads secrets.toml via st.secrets)
 │   ├── analytics.py            # Monthly totals, category breakdowns, daily analysis
 │   ├── auth.py                 # JWT token creation, decoding, expiration checks
 │   ├── budgets.py              # Budget evaluation engine (green/orange/red logic)
@@ -107,8 +107,8 @@ newProject/
 │   └── test_transactions_and_categories.py  # Transaction & category tests
 │
 ├── archive (1)/                # Sample CSV data for demo seeding
-│   ├── Income_clean.csv        # ~200 income records
-│   └── Expenses_clean.csv      # ~1000 expense records
+│   ├── Income_clean.csv        # ~350 income records
+│   └── Expenses_clean.csv      # ~940 expense records
 │
 └── logs/                       # Application log files (auto-created)
 ```
@@ -152,15 +152,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**5. Configure environment variables**
+**5. Configure secrets (TOML format)**
 
-Copy the example file and fill in your values:
+Edit `.streamlit/secrets.toml` with your values:
 
 ```bash
-cp .env.example .env
+# The file is already created with defaults — just update the values
+notepad .streamlit/secrets.toml    # Windows
+nano .streamlit/secrets.toml       # macOS / Linux
 ```
 
-Edit `.env` with your settings (see [Environment Variables](#-environment-variables) below).
+See [Configuration (secrets.toml)](#-configuration-secretstoml) below for full reference.
 
 **6. Run the application**
 
@@ -172,25 +174,56 @@ The app will open at **http://localhost:8501** in your browser.
 
 ---
 
-## 🔐 Environment Variables
+## 🔐 Configuration (secrets.toml)
 
-Create a `.env` file in the project root with the following keys:
+All configuration lives in `.streamlit/secrets.toml` in **TOML** format.  
+On **Streamlit Cloud**, paste the same content into **Settings → Secrets**.
 
-| Variable | Description | Example |
-|---|---|---|
-| `JWT_SECRET` | Secret key for signing JWT tokens | `my_super_secret_key_123` |
-| `JWT_ALGORITHM` | JWT signing algorithm | `HS256` |
-| `JWT_EXP_SECONDS` | Token expiration time in seconds | `3600` |
-| `SMTP_HOST` | SMTP mail server host | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP port | `587` |
-| `SMTP_USERNAME` | SMTP login username | `your-email@gmail.com` |
-| `SMTP_PASSWORD` | SMTP login password or app password | `your-app-password` |
-| `EMAIL_FROM` | Sender email address | `noreply@rupeetracker.com` |
-| `BUDGET_NEAR_THRESHOLD` | Warning threshold ratio (0.0 – 1.0) | `0.8` |
-| `DATABASE_URL` | SQLAlchemy database connection string | `sqlite:///finance_app.db` |
-| `DEFAULT_THEME` | Default UI theme on first load | `dark` |
+```toml
+[database]
+url = "sqlite:///finance_app.db"
 
-> **Note:** If email credentials are not configured, the app still works — email sending will fail silently and log a warning.
+[jwt]
+secret = "your-secure-secret-key-here"
+algorithm = "HS256"
+ttl_minutes = 60
+
+[smtp]
+host = "smtp.gmail.com"
+port = 587
+username = "your-email@gmail.com"
+password = "your-app-password"
+from_email = "noreply@rupeetracker.com"
+retries = 5
+backoff_base = 2.0
+
+[app]
+default_theme = "dark"
+budget_near_threshold = 0.8
+
+[logging]
+level = "INFO"
+dir = "logs"
+file = "finance_app.log"
+max_bytes = 5242880
+backup_count = 5
+```
+
+| Section | Key | Description | Default |
+|---|---|---|---|
+| `database` | `url` | SQLAlchemy connection string | `sqlite:///finance_app.db` |
+| `jwt` | `secret` | Secret key for signing JWT tokens | `dev-secret-change-me` |
+| `jwt` | `algorithm` | JWT signing algorithm | `HS256` |
+| `jwt` | `ttl_minutes` | Token expiry in minutes | `60` |
+| `smtp` | `host` | SMTP mail server host | — |
+| `smtp` | `port` | SMTP port | `587` |
+| `smtp` | `username` | SMTP login username | — |
+| `smtp` | `password` | SMTP login password or app password | — |
+| `smtp` | `from_email` | Sender email address | — |
+| `app` | `default_theme` | Default UI theme on first load | `dark` |
+| `app` | `budget_near_threshold` | Warning threshold ratio (0.0 – 1.0) | `0.8` |
+
+> **Note:** If SMTP credentials are not configured (or left as placeholder values), the app still works — email sending will fail silently and log a warning.
 
 ---
 
@@ -299,7 +332,7 @@ Set spending limits and monitor your budget safety.
 - 🟠 **Orange** — Approaching the limit (80%–99% of budget consumed)
 - 🔴 **Red** — Budget exceeded (100%+ spent)
 
-The 80% threshold is configurable via the `BUDGET_NEAR_THRESHOLD` environment variable.
+The 80% threshold is configurable via `[app] budget_near_threshold` in `secrets.toml`.
 
 ---
 

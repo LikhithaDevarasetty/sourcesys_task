@@ -7,6 +7,8 @@ from typing import Optional
 
 import jwt
 
+from services.config import get_config
+
 
 @dataclass(frozen=True)
 class JwtConfig:
@@ -17,9 +19,9 @@ class JwtConfig:
 
 def load_jwt_config() -> JwtConfig:
     return JwtConfig(
-        secret=os.getenv("JWT_SECRET", "dev-secret-change-me"),
-        algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
-        ttl_minutes=int(os.getenv("JWT_TTL_MINUTES", "60")),
+        secret=str(get_config("jwt", "secret", default="dev-secret-change-me")),
+        algorithm=str(get_config("jwt", "algorithm", default="HS256")),
+        ttl_minutes=int(get_config("jwt", "ttl_minutes", default="60")),
     )
 
 
@@ -80,4 +82,3 @@ def token_expired(token: str) -> bool:
         return True
     except jwt.PyJWTError:
         return True
-

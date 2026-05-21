@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import os
 import smtplib
 from email.message import EmailMessage
 import socket
 from datetime import datetime, timezone
 import time
 
+from services.config import get_config
 from services.logger import get_logger
 
 logger = get_logger("finance_app.email")
@@ -17,19 +17,19 @@ def _now_iso() -> str:
 
 
 def send_email(to_email: str, subject: str, body: str) -> None:
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    # Accept either SMTP_USERNAME or legacy SMTP_USER
-    username = os.getenv("SMTP_USERNAME") or os.getenv("SMTP_USER")
-    password = os.getenv("SMTP_PASSWORD")
-    # Accept either EMAIL_FROM or legacy SMTP_FROM
-    sender = os.getenv("EMAIL_FROM") or os.getenv("SMTP_FROM") or (username or "")
+    host = get_config("smtp", "host")
+    port = int(get_config("smtp", "port", default="587"))
+    # Accept either smtp.username or legacy SMTP_USER
+    username = get_config("smtp", "username")
+    password = get_config("smtp", "password")
+    # Accept either smtp.from_email or legacy SMTP_FROM
+    sender = get_config("smtp", "from_email") or (username or "")
 
     # Detect placeholder/template values and skip sending (avoid noisy tracebacks)
     def _looks_like_placeholder(val: str | None) -> bool:
         if not val:
             return True
-        v = val.strip().lower()
+        v = str(val).strip().lower()
         if v in ("", "change_me", "change-me", "change", "your-smtp-host", "your_smtp_host"):
             return True
         if "example" in v or "your" in v:
@@ -49,8 +49,8 @@ def send_email(to_email: str, subject: str, body: str) -> None:
     msg.set_content(body)
 
     # Attempt send with a retry/backoff for transient network/DNS failures
-    attempts = int(os.getenv("SMTP_RETRIES", "5"))
-    backoff_base = float(os.getenv("SMTP_BACKOFF_BASE", "2"))
+    attempts = int(get_config("smtp", "retries", default="5"))
+    backoff_base = float(get_config("smtp", "backoff_base", default="2"))
     # Try to resolve the host to an IP and log it for debugging (non-fatal)
     try:
         resolved_ip = socket.gethostbyname(host)
@@ -83,7 +83,7 @@ def send_login_email(to_email: str, email: str) -> None:
         f"Hi {email},\n\n"
         f"We detected a login to your Finance Tracker account.\n"
         f"Time (UTC): {_now_iso()}\n\n"
-        f"If this wasn’t you, please reset your password immediately.\n\n"
+        f"If this wasn't you, please reset your password immediately.\n\n"
         f"— Finance Tracker"
     )
     send_email(to_email, subject, body)
@@ -129,6 +129,37 @@ def send_reset_code_email(to_email: str, code: str, recipient_name: str | None =
         f"This code will expire in {ttl_minutes} minutes.\n\n"
         "If you did not request this, you can safely ignore this message.\n\n"
         "— RupeeTracker Team"
+    )
+    send_email(to_email, subject, body)
+
+
+def send_budget_warning_email(to_email: str, budget_label: str, spent: float, limit: float, ratio_pct: int) -> None:
+    """Send a warning email when spending approaches a budget limit (orange alert)."""
+    subject = f"⚠️ Budget Warning — {budget_label} is at {ratio_pct}%"
+    body = (
+        f"Hi,\n\n"
+        f"Your spending for \"{budget_label}\" is approaching the budget limit.\n\n"
+        f"  • Budget Limit : ₹{limit:,.2f}\n"
+        f"  • Amount Spent : ₹{spent:,.2f}\n"
+        f"  • Usage        : {ratio_pct}%\n\n"
+        f"You are nearing your budget cap. Consider reducing your spending in this category "
+        f"to stay within limits.\n\n"
+        f"— RupeeTracker Budget Monitor"
+    )
+    send_email(to_email, subject, body)
+
+
+def send_budget_breach_email(to_email: str, budget_label: str, spent: float, limit: float, over_amount: float) -> None:
+    """Send a critical alert email when a budget limit has been exceeded (red alert)."""
+    subject = f"🚨 Budget Exceeded — {budget_label} is over by ₹{over_amount:,.2f}"
+    body = (
+        f"Hi,\n\n"
+        f"CRITICAL: Your spending for \"{budget_label}\" has exceeded the budget limit!\n\n"
+        f"  • Budget Limit  : ₹{limit:,.2f}\n"
+        f"  • Amount Spent  : ₹{spent:,.2f}\n"
+        f"  • Over by       : ₹{over_amount:,.2f}\n\n"
+        f"Please review your recent transactions and take corrective action.\n\n"
+        f"— RupeeTracker Budget Monitor"
     )
     send_email(to_email, subject, body)
 

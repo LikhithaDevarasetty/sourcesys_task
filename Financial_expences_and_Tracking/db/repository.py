@@ -6,7 +6,6 @@ from typing import Optional, Sequence
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from dotenv import load_dotenv
 
 from .models import Base, User, Transaction, Category, Budget, PasswordReset
 
@@ -28,7 +27,7 @@ class UserCreate:
 
 class Repository:
     def __init__(self, database_url: str):
-        load_dotenv()
+
         self.database_url = database_url
         self.engine = get_engine(database_url)
 
