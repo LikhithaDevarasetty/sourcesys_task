@@ -27,9 +27,19 @@ class UserCreate:
 
 class Repository:
     def __init__(self, database_url: str):
+        # Resolve relative SQLite URL to absolute relative to project root
+        import os
+        resolved_url = database_url
+        if database_url.startswith("sqlite:///"):
+            db_path = database_url[10:]
+            if not os.path.isabs(db_path):
+                # Resolve relative to project root (parent of backend/ = two levels up from this file)
+                db_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+                abs_path = os.path.abspath(os.path.join(db_dir, db_path))
+                resolved_url = f"sqlite:///{abs_path}"
 
-        self.database_url = database_url
-        self.engine = get_engine(database_url)
+        self.database_url = resolved_url
+        self.engine = get_engine(resolved_url)
 
     def init(self) -> None:
         init_db(self.database_url)

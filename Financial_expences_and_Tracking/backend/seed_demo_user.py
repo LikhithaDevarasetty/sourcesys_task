@@ -9,7 +9,6 @@ _BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.abspath(os.path.join(_BACKEND_DIR, '..'))
 if _BACKEND_DIR not in sys.path:
     sys.path.insert(0, _BACKEND_DIR)
-os.chdir(_PROJECT_ROOT)
 from datetime import datetime
 from sqlalchemy.orm import Session
 

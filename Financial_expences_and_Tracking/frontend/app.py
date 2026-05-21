@@ -5,8 +5,6 @@ import os
 # Resolve project root (parent of frontend/) and add backend/ to Python path
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(_PROJECT_ROOT, 'backend'))
-# Set working directory to project root so relative paths (DB, logs, CSVs) resolve correctly
-os.chdir(_PROJECT_ROOT)
 
 import streamlit as st
 from datetime import datetime, timezone

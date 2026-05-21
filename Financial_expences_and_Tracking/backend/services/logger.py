@@ -38,6 +38,11 @@ def get_logger(name: str = "finance_app", level: Optional[int] = None) -> loggin
     logger.addHandler(stream_handler)
 
     # File handler (rotating)
+    # Ensure log_dir is absolute relative to project root (parent of backend/ = two levels up from this file's folder)
+    if not os.path.isabs(log_dir):
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        log_dir = os.path.abspath(os.path.join(project_root, log_dir))
+
     Path(log_dir).mkdir(parents=True, exist_ok=True)
     log_file = os.path.join(log_dir, log_file_name)
     file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
