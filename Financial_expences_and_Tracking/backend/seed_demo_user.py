@@ -1,7 +1,15 @@
 from __future__ import annotations
 
+import sys
 import csv
 import os
+
+# ---- Path Setup (for standalone execution: python backend/seed_demo_user.py) ----
+_BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.abspath(os.path.join(_BACKEND_DIR, '..'))
+if _BACKEND_DIR not in sys.path:
+    sys.path.insert(0, _BACKEND_DIR)
+os.chdir(_PROJECT_ROOT)
 from datetime import datetime
 from sqlalchemy.orm import Session
 
@@ -41,7 +49,7 @@ def seed_demo_user():
     user = repo.get_user_by_email(email)
     print(f"Demo user created with ID: {user.id}")
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = _PROJECT_ROOT
     income_file = os.path.join(BASE_DIR, "archive (1)", "Income_clean.csv")
     expenses_file = os.path.join(BASE_DIR, "archive (1)", "Expenses_clean.csv")
 

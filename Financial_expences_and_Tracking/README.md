@@ -72,45 +72,50 @@ All data is **user-isolated** — each account only sees its own transactions, c
 
 ```
 Financial_expences_and_Tracking/
-├── .streamlit/
-│   ├── config.toml             # Streamlit server configuration
-│   └── secrets.toml            # All app secrets & config (TOML format)
-├── app.py                      # Main application (UI, routing, all pages)
-├── requirements.txt            # Python dependencies
-├── finance_app.db              # SQLite database (auto-created on first run)
-├── check_compile.py            # Quick syntax validation script
-├── seed_demo_user.py           # Script to populate demo data from CSV archives
+├── frontend/                       # Streamlit UI layer
+│   ├── app.py                      # Main application (UI, routing, all pages)
+│   └── .streamlit/
+│       ├── config.toml             # Streamlit server configuration
+│       └── secrets.toml            # All app secrets & config (TOML format)
 │
-├── db/                         # Database layer
-│   ├── models.py               # SQLAlchemy ORM models (User, Transaction, Category, Budget, PasswordReset)
-│   ├── repository.py           # Data access layer (CRUD operations)
-│   ├── seed.py                 # Default category definitions & seeding logic
-│   └── utils.py                # Database utility helpers
+├── backend/                        # Business logic & data layer
+│   ├── db/                         # Database layer
+│   │   ├── models.py               # SQLAlchemy ORM models (User, Transaction, Category, Budget, PasswordReset)
+│   │   ├── repository.py           # Data access layer (CRUD operations)
+│   │   ├── seed.py                 # Default category definitions & seeding logic
+│   │   └── utils.py                # Database utility helpers
+│   │
+│   ├── services/                   # Business logic layer
+│   │   ├── config.py               # Centralized config reader (reads secrets.toml via st.secrets)
+│   │   ├── analytics.py            # Monthly totals, category breakdowns, daily analysis
+│   │   ├── auth.py                 # JWT token creation, decoding, expiration checks
+│   │   ├── budgets.py              # Budget evaluation engine (green/orange/red logic)
+│   │   ├── emailer.py              # SMTP email sender (login, logout, password reset emails)
+│   │   ├── forecast.py             # Spending prediction engine (rolling averages per category)
+│   │   ├── logger.py               # Centralized logging configuration
+│   │   ├── passwords.py            # bcrypt password hashing & verification
+│   │   └── user_service.py         # User registration & authentication helpers
+│   │
+│   ├── tests/                      # Unit test suite
+│   │   ├── conftest.py             # Pytest path configuration
+│   │   ├── test_analytics.py       # Analytics service tests
+│   │   ├── test_budgets_and_forecast.py  # Budget & forecast integration tests
+│   │   ├── test_category_forecast.py     # Category-level forecast tests
+│   │   ├── test_emailer.py         # Email service tests (mocked SMTP)
+│   │   ├── test_repository.py      # Database repository CRUD tests
+│   │   └── test_transactions_and_categories.py  # Transaction & category tests
+│   │
+│   ├── seed_demo_user.py           # Script to populate demo data from CSV archives
+│   └── check_compile.py            # Quick syntax validation script
 │
-├── services/                   # Business logic layer
-│   ├── config.py               # Centralized config reader (reads secrets.toml via st.secrets)
-│   ├── analytics.py            # Monthly totals, category breakdowns, daily analysis
-│   ├── auth.py                 # JWT token creation, decoding, expiration checks
-│   ├── budgets.py              # Budget evaluation engine (green/orange/red logic)
-│   ├── emailer.py              # SMTP email sender (login, logout, password reset emails)
-│   ├── forecast.py             # Spending prediction engine (rolling averages per category)
-│   ├── logger.py               # Centralized logging configuration
-│   ├── passwords.py            # bcrypt password hashing & verification
-│   └── user_service.py         # User registration & authentication helpers
+├── archive (1)/                    # Sample CSV data for demo seeding
+│   ├── Income_clean.csv            # ~350 income records
+│   └── Expenses_clean.csv          # ~940 expense records
 │
-├── tests/                      # Unit test suite
-│   ├── test_analytics.py       # Analytics service tests
-│   ├── test_budgets_and_forecast.py  # Budget & forecast integration tests
-│   ├── test_category_forecast.py     # Category-level forecast tests
-│   ├── test_emailer.py         # Email service tests (mocked SMTP)
-│   ├── test_repository.py      # Database repository CRUD tests
-│   └── test_transactions_and_categories.py  # Transaction & category tests
-│
-├── archive (1)/                # Sample CSV data for demo seeding
-│   ├── Income_clean.csv        # ~350 income records
-│   └── Expenses_clean.csv      # ~940 expense records
-│
-└── logs/                       # Application log files (auto-created)
+├── requirements.txt                # Python dependencies
+├── finance_app.db                  # SQLite database (auto-created on first run)
+├── README.md                       # This file
+└── logs/                           # Application log files (auto-created)
 ```
 
 ---
@@ -154,12 +159,12 @@ pip install -r requirements.txt
 
 **5. Configure secrets (TOML format)**
 
-Edit `.streamlit/secrets.toml` with your values:
+Edit `frontend/.streamlit/secrets.toml` with your values:
 
 ```bash
 # The file is already created with defaults — just update the values
-notepad .streamlit/secrets.toml    # Windows
-nano .streamlit/secrets.toml       # macOS / Linux
+notepad frontend\.streamlit\secrets.toml    # Windows
+nano frontend/.streamlit/secrets.toml       # macOS / Linux
 ```
 
 See [Configuration (secrets.toml)](#-configuration-secretstoml) below for full reference.
@@ -167,7 +172,7 @@ See [Configuration (secrets.toml)](#-configuration-secretstoml) below for full r
 **6. Run the application**
 
 ```bash
-streamlit run app.py
+streamlit run frontend/app.py
 ```
 
 The app will open at **http://localhost:8501** in your browser.
@@ -235,7 +240,7 @@ venv\Scripts\activate        # Windows
 source venv/bin/activate     # macOS / Linux
 
 # Start the Streamlit server
-streamlit run app.py
+streamlit run frontend/app.py
 ```
 
 The app launches at `http://localhost:8501`. You can:
@@ -260,7 +265,7 @@ A ready-made demo account can be seeded with ~1,200 real transactions from the C
 ### Option B: Seed from the Command Line
 
 ```bash
-python seed_demo_user.py
+python backend/seed_demo_user.py
 ```
 
 This reads `archive (1)/Income_clean.csv` and `archive (1)/Expenses_clean.csv`, creates the demo user, and inserts all transactions into the database.
@@ -465,13 +470,13 @@ The project includes **13 unit tests** covering the database layer, analytics, b
 venv\Scripts\activate
 
 # Run all tests
-python -m pytest
+python -m pytest backend/tests/
 
 # Run with verbose output
-python -m pytest -v
+python -m pytest backend/tests/ -v
 
 # Run a specific test file
-python -m pytest tests/test_repository.py
+python -m pytest backend/tests/test_repository.py
 ```
 
 ### Test Coverage
@@ -488,7 +493,7 @@ python -m pytest tests/test_repository.py
 ### Syntax Check
 
 ```bash
-python check_compile.py
+python backend/check_compile.py
 ```
 
 Returns `py_compile OK` if the main `app.py` file has no syntax errors.

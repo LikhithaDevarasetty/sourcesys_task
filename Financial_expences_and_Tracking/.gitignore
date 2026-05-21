@@ -6,3 +6,4 @@ __pycache__
 *.pyc
 logs
 .streamlit
+finance_app.db
