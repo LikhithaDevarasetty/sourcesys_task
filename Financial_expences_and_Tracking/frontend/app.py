@@ -628,6 +628,27 @@ from services.user_service import create_user, authenticate
 from sqlalchemy.exc import IntegrityError
 from services.emailer import send_login_email, send_logout_email
 
+# ---- Google OAuth Setup ----
+try:
+    from streamlit_oauth import OAuth2Component
+    HAS_OAUTH = True
+except ImportError:
+    HAS_OAUTH = False
+
+google_oauth = {}
+client_id = None
+client_secret = None
+redirect_uri = "https://sourcesystask-ag3664cins9m9fr5ywqdmn.streamlit.app/component/streamlit_oauth.authorize_button/"
+
+try:
+    if "google_oauth" in st.secrets:
+        google_oauth = st.secrets["google_oauth"]
+        client_id = google_oauth.get("client_id")
+        client_secret = google_oauth.get("client_secret")
+        redirect_uri = google_oauth.get("redirect_uri", redirect_uri)
+except Exception as e:
+    logger.warning(f"Failed to load google_oauth from st.secrets: {e}")
+
 if "jwt" not in st.session_state:
     st.session_state.jwt = None
 
@@ -737,6 +758,68 @@ if not user_email:
                             logger.warning("Notification delay: %s", e)
                         st.success("Log in successful!")
                         st.rerun()
+
+            # ---- Google OAuth Login / Registration Integration ----
+            st.markdown("<div style='text-align: center; margin: 15px 0; color: #94a3b8; font-size: 14px;'>— or —</div>", unsafe_allow_html=True)
+            
+            if HAS_OAUTH and client_id and client_secret:
+                oauth2 = OAuth2Component(
+                    client_id,
+                    client_secret,
+                    "https://accounts.google.com/o/oauth2/v2/auth",
+                    "https://oauth2.googleapis.com/token",
+                    "https://oauth2.googleapis.com/token",
+                    "https://oauth2.googleapis.com/revoke"
+                )
+                
+                result = oauth2.authorize_button(
+                    name="(continue with google)",
+                    redirect_uri=redirect_uri,
+                    scope="openid email profile",
+                    use_container_width=True,
+                    key="google_oauth_login"
+                )
+                
+                if result:
+                    try:
+                        import jwt
+                        token_obj = result.get("token")
+                        id_token = None
+                        if isinstance(token_obj, dict):
+                            id_token = token_obj.get("id_token")
+                        elif isinstance(result, dict):
+                            id_token = result.get("id_token")
+                            
+                        if id_token:
+                            decoded = jwt.decode(id_token, options={"verify_signature": False})
+                            g_email = decoded.get("email")
+                            if g_email:
+                                user = repo.get_user_by_email(g_email)
+                                if not user:
+                                    import secrets
+                                    dummy_pass = secrets.token_urlsafe(32)
+                                    create_user(repo, g_email, dummy_pass)
+                                    user = repo.get_user_by_email(g_email)
+                                    
+                                if user:
+                                    st.session_state.jwt = create_token(user.id, user.email)
+                                    try:
+                                        send_login_email(user.email, user.email)
+                                    except Exception as e:
+                                        logger.warning("Notification delay: %s", e)
+                                    st.success("Log in successful!")
+                                    st.rerun()
+                                else:
+                                    st.error("Authentication failed. Unable to create account.")
+                            else:
+                                st.error("Authentication failed. No email address returned from Google.")
+                        else:
+                            st.error("Authentication failed. No ID token returned from Google.")
+                    except Exception as ex:
+                        logger.error(f"Google OAuth error: {ex}", exc_info=True)
+                        st.error(f"Google authentication failed: {ex}")
+            else:
+                st.button("🔌 (continue with google)", use_container_width=True, disabled=True, help="Google OAuth is not configured in secrets.toml.")
 
             st.markdown("<br/>", unsafe_allow_html=True)
             b_col1, b_col2 = st.columns(2)

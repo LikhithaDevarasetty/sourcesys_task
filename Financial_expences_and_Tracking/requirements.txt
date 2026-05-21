@@ -8,4 +8,5 @@ SQLAlchemy
 pydantic
 jinja2
 tenacity
-
+authlib
+streamlit-oauth
