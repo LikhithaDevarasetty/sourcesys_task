@@ -21,6 +21,14 @@ def get_config(section: str, key: str, *, default: Any = None) -> Any:
     The environment variable fallback uses the pattern SECTION_KEY (uppercased),
     e.g. section="jwt", key="secret" -> os.getenv("JWT_SECRET").
     """
+    # If running inside pytest, prioritize environment variables to ensure test isolation
+    if "PYTEST_CURRENT_TEST" in os.environ:
+        # Fallback: environment variable  (SECTION_KEY uppercase)
+        env_key = f"{section}_{key}".upper()
+        env_val = os.getenv(env_key)
+        if env_val is not None:
+            return env_val
+
     # Try Streamlit secrets first
     try:
         import streamlit as st
