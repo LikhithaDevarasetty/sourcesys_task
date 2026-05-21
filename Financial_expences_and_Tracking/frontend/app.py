@@ -4,7 +4,10 @@ import os
 # ---- Project Path Setup ----
 # Resolve project root (parent of frontend/) and add backend/ to Python path
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(_PROJECT_ROOT, 'backend'))
+if os.path.join(_PROJECT_ROOT, 'backend') not in sys.path:
+    sys.path.insert(0, os.path.join(_PROJECT_ROOT, 'backend'))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 import streamlit as st
 from datetime import datetime, timezone
@@ -18,9 +21,14 @@ st.set_page_config(
 )
 
 # ---- Load Config & Logger ----
-from services.config import get_config
-from services.logger import get_logger
-from db.repository import Repository
+try:
+    from services.config import get_config
+    from services.logger import get_logger
+    from db.repository import Repository
+except ImportError:
+    from backend.services.config import get_config
+    from backend.services.logger import get_logger
+    from backend.db.repository import Repository
 
 logger = get_logger()
 
@@ -494,6 +502,79 @@ st.markdown(
         box-shadow: {glow_color} 0px 8px 24px, rgba(0,0,0,0.15) 0px 4px 10px !important;
     }}
 
+    /* Google OAuth Component Iframe Custom Premium Styling */
+    iframe[title="streamlit_oauth.authorize_button"],
+    [data-testid="stHtml"] iframe {{
+        background: {accent_gradient} !important;
+        border: none !important;
+        border-radius: 12px !important;
+        box-shadow: {glow_color} 0px 4px 16px !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        height: 45px !important;
+        width: 100% !important;
+        display: block !important;
+    }}
+    iframe[title="streamlit_oauth.authorize_button"]:hover,
+    [data-testid="stHtml"] iframe:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: {glow_color} 0px 8px 24px, rgba(0,0,0,0.15) 0px 4px 10px !important;
+    }}
+
+    /* Custom Google Button Wrapper to Match Primary Action Button Styling */
+    .google-btn-wrapper .stButton>button {{
+        background: {accent_gradient} !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.02em !important;
+        box-shadow: {glow_color} 0px 4px 16px !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        height: 45px !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }}
+    .google-btn-wrapper .stButton>button:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: {glow_color} 0px 8px 24px, rgba(0,0,0,0.15) 0px 4px 10px !important;
+        color: #ffffff !important;
+    }}
+    .google-btn-wrapper .stButton>button:disabled {{
+        background: {accent_gradient} !important;
+        color: #ffffff !important;
+        opacity: 0.65 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }}
+
+    /* Styled Divider with 'or' */
+    .auth-divider {{
+        display: flex !important;
+        align-items: center !important;
+        text-align: center !important;
+        margin: 22px 0 !important;
+        color: {secondary_text} !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+    }}
+    .auth-divider::before,
+    .auth-divider::after {{
+        content: '' !important;
+        flex: 1 !important;
+        border-bottom: {border_style} !important;
+    }}
+    .auth-divider::before {{
+        margin-right: 16px !important;
+    }}
+    .auth-divider::after {{
+        margin-left: 16px !important;
+    }}
+
     /* Global Status Notifications Slide/Fade Dropdown Animation */
     [data-testid="stNotification"] {{
         background: {card_bg} !important;
@@ -593,7 +674,10 @@ repo.init()
 
 # Seed default categories
 try:
-    from db.seed import seed_default_categories
+    try:
+        from db.seed import seed_default_categories
+    except ImportError:
+        from backend.db.seed import seed_default_categories
     seed_default_categories(repo)
 except Exception as e:
     logger.warning(f"Category setup status: {e}")
@@ -614,19 +698,29 @@ if "demo_seeded" not in st.session_state:
                 needs_seed = True
         if needs_seed:
             logger.info("Demo user missing or empty — auto-seeding demo data...")
-            from seed_demo_user import seed_demo_user
+            try:
+                from seed_demo_user import seed_demo_user
+            except ImportError:
+                from backend.seed_demo_user import seed_demo_user
             seed_demo_user()
             logger.info("Demo user auto-seeded successfully.")
     except Exception as e:
         logger.warning(f"Demo auto-seed skipped: {e}")
 
 # ---- Authentication Infrastructure ----
-from services.auth import create_token, decode_token, token_expired
-from services.auth import create_action_token, verify_action_token
-from services.passwords import verify_password
-from services.user_service import create_user, authenticate
+try:
+    from services.auth import create_token, decode_token, token_expired
+    from services.auth import create_action_token, verify_action_token
+    from services.passwords import verify_password
+    from services.user_service import create_user, authenticate
+    from services.emailer import send_login_email, send_logout_email
+except ImportError:
+    from backend.services.auth import create_token, decode_token, token_expired
+    from backend.services.auth import create_action_token, verify_action_token
+    from backend.services.passwords import verify_password
+    from backend.services.user_service import create_user, authenticate
+    from backend.services.emailer import send_login_email, send_logout_email
 from sqlalchemy.exc import IntegrityError
-from services.emailer import send_login_email, send_logout_email
 
 # ---- Google OAuth Setup ----
 try:
@@ -635,19 +729,15 @@ try:
 except ImportError:
     HAS_OAUTH = False
 
-google_oauth = {}
-client_id = None
-client_secret = None
-redirect_uri = "https://sourcesystask-ag3664cins9m9fr5ywqdmn.streamlit.app/component/streamlit_oauth.authorize_button/"
+from services.config import get_config
 
-try:
-    if "google_oauth" in st.secrets:
-        google_oauth = st.secrets["google_oauth"]
-        client_id = google_oauth.get("client_id")
-        client_secret = google_oauth.get("client_secret")
-        redirect_uri = google_oauth.get("redirect_uri", redirect_uri)
-except Exception as e:
-    logger.warning(f"Failed to load google_oauth from st.secrets: {e}")
+client_id = get_config("google_oauth", "client_id")
+client_secret = get_config("google_oauth", "client_secret")
+redirect_uri = get_config(
+    "google_oauth", 
+    "redirect_uri", 
+    default="https://sourcesystask-ag3664cins9m9fr5ywqdmn.streamlit.app/component/streamlit_oauth.authorize_button/"
+)
 
 if "jwt" not in st.session_state:
     st.session_state.jwt = None
@@ -705,12 +795,18 @@ if not user_email:
                 else:
                     email_for = payload.get("email")
                     user_obj = repo.get_user_by_email(email_for)
-                    from services.passwords import hash_password
+                    try:
+                        from services.passwords import hash_password
+                    except ImportError:
+                        from backend.services.passwords import hash_password
                     if user_obj:
                         new_hash = hash_password(npw)
                         ok = repo.set_user_password(user_obj.id, new_hash)
                         try:
-                            from services.emailer import send_email
+                            try:
+                                from services.emailer import send_email
+                            except ImportError:
+                                from backend.services.emailer import send_email
                             send_email(user_obj.email, "Your password was changed — RupeeTracker", f"Hi {user_obj.email},\n\nYour account password was successfully changed. If you did not perform this action, contact support immediately.")
                         except Exception:
                             logger.warning("Failed to send password-change notification to %s", user_obj.email, exc_info=True)
@@ -760,9 +856,15 @@ if not user_email:
                         st.rerun()
 
             # ---- Google OAuth Login / Registration Integration ----
-            st.markdown("<div style='text-align: center; margin: 15px 0; color: #94a3b8; font-size: 14px;'>— or —</div>", unsafe_allow_html=True)
+            st.markdown("<div class='auth-divider'>or</div>", unsafe_allow_html=True)
             
-            if HAS_OAUTH and client_id and client_secret:
+            is_configured = (
+                client_id 
+                and client_secret 
+                and client_id != "YOUR_GOOGLE_CLIENT_ID" 
+                and client_secret != "YOUR_GOOGLE_CLIENT_SECRET"
+            )
+            if HAS_OAUTH and is_configured:
                 oauth2 = OAuth2Component(
                     client_id,
                     client_secret,
@@ -772,13 +874,15 @@ if not user_email:
                     "https://oauth2.googleapis.com/revoke"
                 )
                 
+                st.markdown('<div class="google-btn-wrapper">', unsafe_allow_html=True)
                 result = oauth2.authorize_button(
-                    name="(continue with google)",
+                    name="🔑 Continue with Google",
                     redirect_uri=redirect_uri,
                     scope="openid email profile",
                     use_container_width=True,
                     key="google_oauth_login"
                 )
+                st.markdown('</div>', unsafe_allow_html=True)
                 
                 if result:
                     try:
@@ -819,7 +923,9 @@ if not user_email:
                         logger.error(f"Google OAuth error: {ex}", exc_info=True)
                         st.error(f"Google authentication failed: {ex}")
             else:
-                st.button("🔌 (continue with google)", use_container_width=True, disabled=True, help="Google OAuth is not configured in secrets.toml.")
+                st.markdown('<div class="google-btn-wrapper">', unsafe_allow_html=True)
+                st.button("🔑 Continue with Google", use_container_width=True, disabled=True, help="Google OAuth is not configured in secrets.toml.")
+                st.markdown('</div>', unsafe_allow_html=True)
 
             st.markdown("<br/>", unsafe_allow_html=True)
             b_col1, b_col2 = st.columns(2)
@@ -889,7 +995,10 @@ if not user_email:
                             import random
                             code = f"{random.randint(100000,999999)}"
                             pr = repo.create_password_reset(reset_email, code, ttl_minutes=20)
-                            from services.emailer import send_reset_code_email
+                            try:
+                                from services.emailer import send_reset_code_email
+                            except ImportError:
+                                from backend.services.emailer import send_reset_code_email
                             try:
                                 send_reset_code_email(reset_email, code, ttl_minutes=20)
                             except Exception:
@@ -933,7 +1042,10 @@ if not user_email:
                         if not pr:
                             st.error("Invalid or expired code. Request a new code if needed.")
                         else:
-                            from services.passwords import hash_password
+                            try:
+                                from services.passwords import hash_password
+                            except ImportError:
+                                from backend.services.passwords import hash_password
                             new_hash = hash_password(new_pw)
                             # update password if user exists
                             user_obj = repo.get_user_by_email(st.session_state.reset_email)
@@ -941,7 +1053,10 @@ if not user_email:
                                 ok = repo.set_user_password(user_obj.id, new_hash)
                                 repo.mark_password_reset_used(pr.id)
                                 try:
-                                    from services.emailer import send_email
+                                    try:
+                                        from services.emailer import send_email
+                                    except ImportError:
+                                        from backend.services.emailer import send_email
                                     send_email(user_obj.email, "Password changed — RupeeTracker", f"Hi {user_obj.email},\n\nYour password was changed via the reset code. If you did not perform this action contact support.")
                                 except Exception:
                                     logger.warning("Failed to send password-change notification to %s", user_obj.email, exc_info=True)
@@ -1065,7 +1180,10 @@ with st.sidebar:
     if st.button("🔄 Reset & Seed Demo Data", use_container_width=True, key="sandbox_seeder_button"):
         with st.spinner("Seeding database..."):
             try:
-                from seed_demo_user import seed_demo_user
+                try:
+                    from seed_demo_user import seed_demo_user
+                except ImportError:
+                    from backend.seed_demo_user import seed_demo_user
                 seed_demo_user()
                 st.toast("Database seeded successfully!", icon="🔄")
                 st.success("Successfully seeded demo user database!")
@@ -1089,8 +1207,15 @@ st.markdown("<hr/>", unsafe_allow_html=True)
 
 # ---- Global Budget Notification Checks ----
 if user:
-    from services.budgets import evaluate_budgets
-    from services.emailer import send_budget_warning_email, send_budget_breach_email
+    try:
+        from services.budgets import evaluate_budgets
+    except ImportError:
+        from backend.services.budgets import evaluate_budgets
+        
+    try:
+        from services.emailer import send_budget_warning_email, send_budget_breach_email
+    except ImportError:
+        from backend.services.emailer import send_budget_warning_email, send_budget_breach_email
     try:
         active_budgets = evaluate_budgets(repo, user.id)
         for b in active_budgets:
@@ -1136,7 +1261,10 @@ if page == "Home Dashboard":
         st.error("Session sync failed. Please log in again.")
     else:
         import pandas as pd
-        from services.analytics import monthly_totals, category_totals_for_month
+        try:
+            from services.analytics import monthly_totals, category_totals_for_month
+        except ImportError:
+            from backend.services.analytics import monthly_totals, category_totals_for_month
 
         # ---- Dashboard Hero Block ----
         current_hour = datetime.now().hour
@@ -1421,7 +1549,10 @@ elif page == "Spending Analytics":
     st.subheader("Your Money Analytics Graphs")
     st.caption("Simple chart breakdowns showing exactly where your money goes.")
 
-    from services.analytics import monthly_totals, category_totals_for_month, daily_breakdown
+    try:
+        from services.analytics import monthly_totals, category_totals_for_month, daily_breakdown
+    except ImportError:
+        from backend.services.analytics import monthly_totals, category_totals_for_month, daily_breakdown
     import pandas as pd
     import plotly.express as px
 
@@ -1499,7 +1630,10 @@ elif page == "Monthly Budgets":
     st.subheader("Set Spending Limits & Budgets")
     st.caption("Enforce monthly budget caps on your spending to control cash leakages.")
 
-    from services.budgets import evaluate_budgets
+    try:
+        from services.budgets import evaluate_budgets
+    except ImportError:
+        from backend.services.budgets import evaluate_budgets
 
     if not user:
         st.error("Login verification missing.")
@@ -1544,8 +1678,15 @@ elif page == "Future Forecast":
     st.subheader("Next Month Category-Wise Spending Estimator")
     st.caption("A data projection tool that looks at previous spending cycles to forecast next month's category expenses.")
 
-    from services.forecast import forecast_categories_next_month, forecast_next_month
-    from services.analytics import category_totals_for_month
+    try:
+        from services.forecast import forecast_categories_next_month, forecast_next_month
+    except ImportError:
+        from backend.services.forecast import forecast_categories_next_month, forecast_next_month
+        
+    try:
+        from services.analytics import category_totals_for_month
+    except ImportError:
+        from backend.services.analytics import category_totals_for_month
     import pandas as pd
     import plotly.express as px
 
