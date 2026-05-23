@@ -1140,11 +1140,21 @@ with st.sidebar:
     
     # Profile Card
     if user:
+        display_name = getattr(user, "name", None) or user_email
+        if not getattr(user, "name", None):
+            try:
+                local_part = user_email.split("@")[0]
+                name_parts = local_part.replace(".", " ").replace("_", " ").replace("-", " ").split()
+                display_name = " ".join([p.capitalize() for p in name_parts])
+            except Exception:
+                display_name = user_email
+                
         st.markdown(
             f"""
             <div class="sidebar-profile-card">
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: {secondary_text}; font-weight: 700; margin-bottom: 4px;">Active Profile</div>
-                <div style="font-size: 14px; font-weight: 700; color: {text_color}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{user_email}">{user_email}</div>
+                <div style="font-size: 15px; font-weight: 700; color: {text_color}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;" title="{display_name}">{display_name}</div>
+                <div style="font-size: 11px; color: {secondary_text}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{user_email}">{user_email}</div>
                 <div style="font-size: 11px; color: {secondary_text}; margin-top: 4px;">User ID: #{user.id}</div>
             </div>
             """,
@@ -1282,7 +1292,18 @@ if page == "Home Dashboard":
         else:
             greeting = "Good Evening"
             
-        greeting_user = "Demo User" if user_email == "demo@rupeetracker.com" else user_email.split('@')[0]
+        if user and getattr(user, "name", None):
+            greeting_user = user.name
+        elif user_email == "demo@rupeetracker.com":
+            greeting_user = "Demo User"
+        else:
+            try:
+                local_part = user_email.split("@")[0]
+                name_parts = local_part.replace(".", " ").replace("_", " ").replace("-", " ").split()
+                greeting_user = " ".join([p.capitalize() for p in name_parts])
+            except Exception:
+                greeting_user = user_email.split('@')[0]
+                
         greeting_text = f"{greeting}, {greeting_user}! 👋"
         
         finance_tips = [
