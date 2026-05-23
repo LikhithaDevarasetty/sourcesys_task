@@ -2,55 +2,83 @@
 
 A premium, full-stack personal finance web application built with **Streamlit**, **SQLAlchemy**, **Plotly**, and **JWT authentication**. Track your income and expenses, set monthly budgets, visualize spending patterns, forecast future costs, and manage custom categories — all from a beautiful glassmorphic dashboard with Dark & Light mode support.
 
+RupeeTracker has been upgraded with **Google OAuth 2.0 sign-in**, **same-origin visual iframe styling**, **sqlite auto-migrations**, **personalized user accounts**, and a **premium responsive HTML emailer engine** that automatically sends transactional expense receipts with color-coded live budget alerts (green, orange, red) to users.
+
 ---
 
 ## 📋 Table of Contents
 
-- [How It Works](#-how-it-works)
+- [Core Workflows](#-core-workflows)
+- [New Features & Upgrades](#-new-features--upgrades)
 - [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
+- [Project Architecture](#-project-architecture)
+- [Detailed Page-by-Page Guide](#-detailed-page-by-page-guide)
 - [Setup & Installation](#-setup--installation)
-- [Environment Variables](#-environment-variables)
-- [Running the App](#-running-the-app)
-- [Demo User & Sample Data](#-demo-user--sample-data)
-- [Pages & Features](#-pages--features)
-- [Authentication Flow](#-authentication-flow)
-- [Budget Alert System](#-budget-alert-system)
+- [Configuration (secrets.toml & Streamlit Cloud)](#-configuration-secretstoml--streamlit-cloud)
+- [Google Cloud Console Setup](#-google-cloud-console-setup)
+- [Budget Alert System & Email Receipts](#-budget-alert-system--email-receipts)
 - [Forecasting Engine](#-forecasting-engine)
-- [Default Categories](#-default-categories)
-- [Theme System](#-theme-system)
 - [Running Tests](#-running-tests)
 
 ---
 
-## 🔄 How It Works
+## 🔄 Core Workflows
 
-RupeeTracker follows a simple, intuitive workflow:
+```mermaid
+graph TD
+    A[Start App] --> B{Logged In?}
+    B -- No --> C[Glassmorphic Auth Screen]
+    C --> C1[Standard Email/Pass Login]
+    C --> C2[Register New Account with Full Name]
+    C --> C3[🔑 Centered Google OAuth Sign-in]
+    
+    B -- Yes --> D[Premium Sidebar Navigation]
+    D --> E[🏠 Home Dashboard]
+    D --> F[➕ Add Money Entry]
+    D --> G[📊 Spending Analytics]
+    D --> H[🛡️ Monthly Budgets]
+    D --> I[🔮 Future Forecast]
+    D --> J[🏷️ Manage Categories]
 
+    F -->|Log Expense| K{Budget Configured?}
+    K -- Yes --> L[Calculate Spent/Limit Ratio]
+    L --> M{Spent Ratio?}
+    M -->|>= 100%| M1[🔴 Red Alert - Exceeded]
+    M -->|>= 80%| M2[🟡 Orange Alert - Nearing]
+    M -->|< 80%| M3[🟢 Green Alert - Safe]
+    K -- No --> N[Default Log Status]
+    
+    M1 & M2 & M3 & N --> O[📧 Send Premium HTML Email Receipt to User]
 ```
-Register / Login
-       ↓
- Log Transactions (Income & Expenses)
-       ↓
- Categorize Each Entry
-       ↓
- Set Monthly Budget Limits
-       ↓
- View Analytics & Spending Charts
-       ↓
- Get Budget Alerts (Green / Orange / Red)
-       ↓
- Forecast Next Month's Expenses
-```
 
-1. **Sign up** with your email and password — a secure account is created with JWT-based sessions.
-2. **Log transactions** — record every income or expense with a date, amount, category, and optional notes.
-3. **Set budgets** — define monthly spending caps (overall or per-category).
-4. **Analyze** — interactive Plotly charts show where your money goes, trends over time, and category breakdowns.
-5. **Get alerts** — the system automatically evaluates your spending against budget limits and shows color-coded warnings.
-6. **Forecast** — a rolling-average engine predicts next month's spending per category based on historical data.
+---
 
-All data is **user-isolated** — each account only sees its own transactions, categories, and budgets.
+## 🌟 New Features & Upgrades
+
+We have implemented several high-fidelity features to make RupeeTracker a robust, production-ready premium financial companion:
+
+### 1. 🔑 Integrated Google OAuth 2.0 Sign-In
+* **Same-Origin Visual Parity**: Solved default Streamlit custom component iframe styling issues. The active `🔑 Continue with Google` button is styled directly from the parent page to inherit identical gradients, dimensions, a `12px` border-radius, and a micro-glowing shadow hover effect matching our primary credential buttons.
+* **Vertical & Horizontal Centering**: Reset margins and introduced flexbox centering inside the iframe (`html, body, #root`) to eliminate default browser `8px` offsets, ensuring the Google logo and text are mathematically centered.
+* **Auto-Registration & JWT-Session Bridging**: When a user signs in via Google, the ID token (JWT) is decoded. If the profile is new, the system creates a secure account, seeds default categories, and logs them in. Existing users are logged in immediately.
+
+### 2. 👤 Personalized Accounts & SQLite Auto-Migrations
+* **Full Name Registration**: Standard signup now includes a **"Full Name"** input field, allowing credential users to save their real name (e.g. `Likhitha Devarasetty`).
+* **Zero-Downtime SQLite Auto-Migrations**: When the application boots, the repository automatically detects if the SQLite database is missing the nullable `name` column and injects it on-the-fly (`ALTER TABLE users ADD COLUMN name`). This guarantees backward compatibility without breaking existing databases.
+
+### 3. 📧 Premium HTML Transactional Email Engine
+* **Dark-Glassmorphism Templates**: Replaced automated plain-text emails with highly responsive, gorgeous HTML email templates. Emails feature customized detail lists, professional typography (`Plus Jakarta Sans`), and localized gradients.
+* **Friendly Greetings**: Emails dynamically resolve your database record and greet you as **`Hi Likhitha Devarasetty,`** instead of raw emails like `Hi kamalidevarasetty@gmail.com,`.
+* **DMARC/SPF Deliverability**: Adjusted layout properties and headers to comply with modern email spam filters, significantly improving email inbox delivery.
+
+### 4. 📈 Real-Time Expense Receipts & Budget Alert Banners
+Every time a transaction of type `"expense"` is logged:
+* The system calculates your current monthly category spending (or overall monthly budget spending).
+* A structured receipt containing the Transaction ID, Date, Amount, Category, and Notes is emailed to you.
+* The email embeds a **color-coded budget alert block**:
+  * 🔴 **Red Alert (Limit Exceeded)**: Triggers if spent $\ge 100\%$, showing exact overspending metrics.
+  * 🟡 **Orange Alert (Limit Nearing)**: Triggers if spent $\ge 80\%$, warning you to slow down.
+  * 🟢 **Green Alert (Healthy)**: Triggers if spent $< 80\%$, confirming you are safe.
 
 ---
 
@@ -61,144 +89,161 @@ All data is **user-isolated** — each account only sees its own transactions, c
 | **Frontend** | Streamlit (Python) with custom CSS/HTML injection |
 | **Database** | SQLite via SQLAlchemy ORM |
 | **Charts** | Plotly Express |
-| **Authentication** | JWT (PyJWT) with bcrypt password hashing |
-| **Email** | SMTP-based notifications (login / logout / password reset) |
+| **Authentication** | JWT (PyJWT), bcrypt hashing, and Google OAuth 2.0 |
+| **Email** | SMTP-based notifications (Gmail/SendGrid compatible) |
 | **Styling** | Glassmorphic CSS with Plus Jakarta Sans typography |
-| **Testing** | pytest (13 unit tests) |
+| **Testing** | pytest (13/13 unit tests passed) |
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Architecture
 
 ```
 Financial_expences_and_Tracking/
 ├── frontend/                       # Streamlit UI layer
-│   ├── app.py                      # Main application (UI, routing, all pages)
+│   ├── app.py                      # Main application (UI, styling overrides, routing, all pages)
 │   └── .streamlit/
 │       ├── config.toml             # Streamlit server configuration
-│       └── secrets.toml            # All app secrets & config (TOML format)
+│       └── secrets.toml            # App secrets & SMTP/OAuth config (TOML format)
 │
 ├── backend/                        # Business logic & data layer
 │   ├── db/                         # Database layer
-│   │   ├── models.py               # SQLAlchemy ORM models (User, Transaction, Category, Budget, PasswordReset)
-│   │   ├── repository.py           # Data access layer (CRUD operations)
-│   │   ├── seed.py                 # Default category definitions & seeding logic
-│   │   └── utils.py                # Database utility helpers
+│   │   ├── models.py               # ORM models (User, Transaction, Category, Budget, PasswordReset)
+│   │   ├── repository.py           # Data access layer (CRUD, Auto-Migrations, Seeding)
+│   │   ├── seed.py                 # Default category definitions
+│   │   └── utils.py                # Database helper utilities
 │   │
 │   ├── services/                   # Business logic layer
-│   │   ├── config.py               # Centralized config reader (reads secrets.toml via st.secrets)
+│   │   ├── config.py               # Centralized config reader (st.secrets + os.getenv fallback)
 │   │   ├── analytics.py            # Monthly totals, category breakdowns, daily analysis
 │   │   ├── auth.py                 # JWT token creation, decoding, expiration checks
-│   │   ├── budgets.py              # Budget evaluation engine (green/orange/red logic)
-│   │   ├── emailer.py              # SMTP email sender (login, logout, password reset emails)
+│   │   ├── budgets.py              # Live budget status checking (red/orange/green logic)
+│   │   ├── emailer.py              # Premium HTML SMTP notifications engine
 │   │   ├── forecast.py             # Spending prediction engine (rolling averages per category)
 │   │   ├── logger.py               # Centralized logging configuration
 │   │   ├── passwords.py            # bcrypt password hashing & verification
 │   │   └── user_service.py         # User registration & authentication helpers
 │   │
 │   ├── tests/                      # Unit test suite
-│   │   ├── conftest.py             # Pytest path configuration
-│   │   ├── test_analytics.py       # Analytics service tests
-│   │   ├── test_budgets_and_forecast.py  # Budget & forecast integration tests
-│   │   ├── test_category_forecast.py     # Category-level forecast tests
-│   │   ├── test_emailer.py         # Email service tests (mocked SMTP)
-│   │   ├── test_repository.py      # Database repository CRUD tests
-│   │   └── test_transactions_and_categories.py  # Transaction & category tests
+│   │   ├── conftest.py             # Pytest configuration
+│   │   └── ...                     # 6 robust test modules (13 test cases)
 │   │
-│   ├── seed_demo_user.py           # Script to populate demo data from CSV archives
-│   └── check_compile.py            # Quick syntax validation script
-│
-├── archive (1)/                    # Sample CSV data for demo seeding
-│   ├── Income_clean.csv            # ~350 income records
-│   └── Expenses_clean.csv          # ~940 expense records
-│
-├── requirements.txt                # Python dependencies
-├── finance_app.db                  # SQLite database (auto-created on first run)
-├── README.md                       # This file
-└── logs/                           # Application log files (auto-created)
+│   ├── seed_demo_user.py           # Populate demo data from CSV archives
+│   └── check_compile.py            # Syntax compilation check
 ```
+
+---
+
+## 📄 Detailed Page-by-Page Guide
+
+After logging in, use the **sidebar navigation pills** to switch between pages. Here is a breakdown of what you can do on each screen:
+
+### 🏠 1. Home Dashboard
+The visual center of RupeeTracker. Gives you a complete snapshot of your financial health at first glance.
+* **Greeting Block**: Shows a dynamic, time-aware greeting (e.g. *"Good Morning, Likhitha!"*) with a rotating daily personal finance tip.
+* **Cash Flow Health Indicator**: Displays a real-time status badge ("High Surplus" in green, "Balanced" in orange, or "Deficit Danger" in red) based on your expense-to-income ratio.
+* **Summary Cards**: Three premium glassmorphic cards summarizing **Total Earnings** (green), **Total Spending** (red), and **Net Savings** (green/red).
+* **Live Budget Alerts**: Banners automatically appear at the top of the dashboard if any category budget or overall monthly budget is breached (red) or nearing limits (orange).
+* **Passbook History Ledger**: A data grid containing your transaction history. You can search remarks by text, filter by categories, and filter by transaction type (Income/Expense pills).
+* **Passbook Row Actions**: Select any row from the history dropdown to **Edit Notes/Dates/Amounts** or **Delete Transactions permanently**.
+
+### ➕ 2. Add Money Entry
+The transaction input interface. Write down income or expenses here.
+* **Is this an Income or Expense?**: Dropdown selector.
+* **Amount**: Enter the numerical value in Rupees.
+* **Transaction Date**: Datepicker (defaults to today).
+* **Category Group**: Select an existing category.
+* **Custom Categories**: Check the *"Create a custom category name text right now"* box to type and register a brand-new category instantly.
+* **Remarks/Notes**: Add details (e.g. shop name or item list).
+* **Automatic Notification**: On submitting an **expense**, the system automatically calculates your budget safety ratio and emails you a structured receipt containing these details along with a color-coded budget status banner.
+
+### 📊 3. Spending Analytics
+Interactive charts visualizing exactly where your money goes.
+* **Timeline Slider**: Slide to choose how many months of historical data to show (3 to 24 months).
+* **Income vs Spending Trends**: A Plotly line chart displaying your monthly income vs. spending trends over time.
+* **Category Spending Breakdown**: Select a specific month to render a Plotly bar chart displaying your top 10 spending categories.
+* *Note: All charts are fully theme-aware and dynamically switch templates (`plotly_dark` vs `plotly_white`) based on the active app theme.*
+
+### 🛡️ 4. Monthly Budgets
+Configure spending limits and monitor budget health.
+* **Target Month**: Input month in `YYYY-MM` format.
+* **Limit Type**: Set an overall monthly spending limit (select none) or a category-specific spending limit.
+* **Budget Safety Cards**: Glassmorphic progress cards displaying spent ratio, limit, remaining funds, and color status.
+  * 🟢 **Green** — Safe (under 80% consumed).
+  * 🟠 **Orange** — Warning (80%–99% consumed).
+  * 🔴 **Red** — Critical breach (100%+ consumed).
+
+### 🔮 5. Future Forecast
+Estimate next month's category-wise expenses based on historical data.
+* **Lookback Window**: Use a slider to pick how many months of history to use for predictions (1–12 months).
+* **Comparison Graph**: Grouped Plotly bar chart displaying current month's expenses side-by-side with predicted costs per category.
+* **Forecast Ledger Table**: Detailed grid displaying exact numerical predictions.
+* **Total Estimate Card**: Displays estimated total funds required for next month.
+
+### 🏷️ 6. Manage Categories
+Administrate spending categories.
+* **Active Categories List**: Displays all active category names and database IDs.
+* **Add Category**: Instantly create a new category.
+* **Rename Category**: Select a category and give it a new name.
+* **Delete Category**: Permanently delete a category. *Seeding creates 22 default categories automatically on signup.*
 
 ---
 
 ## 🚀 Setup & Installation
 
 ### Prerequisites
+* **Python 3.10+** installed on your system.
+* **pip** package manager.
 
-- **Python 3.10+** installed on your system
-- **pip** package manager
-
-### Step-by-Step
-
-**1. Clone or download the project**
-
+### Step-by-Step Installation
+**1. Clone the project and navigate into it:**
 ```bash
-cd newProject
+cd Financial_expences_and_Tracking
 ```
 
-**2. Create a virtual environment**
-
-```bash
-python -m venv venv
-```
-
-**3. Activate the virtual environment**
-
+**2. Create and activate a virtual environment:**
 ```bash
 # Windows
+python -m venv venv
 venv\Scripts\activate
 
 # macOS / Linux
+python -m venv venv
 source venv/bin/activate
 ```
 
-**4. Install dependencies**
-
+**3. Install requirements:**
 ```bash
 pip install -r requirements.txt
 ```
 
-**5. Configure secrets (TOML format)**
-
-Edit `frontend/.streamlit/secrets.toml` with your values:
-
-```bash
-# The file is already created with defaults — just update the values
-notepad frontend\.streamlit\secrets.toml    # Windows
-nano frontend/.streamlit/secrets.toml       # macOS / Linux
-```
-
-See [Configuration (secrets.toml)](#-configuration-secretstoml) below for full reference.
-
-**6. Run the application**
-
+**4. Run the Streamlit app:**
 ```bash
 streamlit run frontend/app.py
 ```
-
-The app will open at **http://localhost:8501** in your browser.
+The app will boot up locally and open automatically at **http://localhost:8501** in your web browser.
 
 ---
 
-## 🔐 Configuration (secrets.toml)
+## 🔐 Configuration (secrets.toml & Streamlit Cloud)
 
-All configuration lives in `.streamlit/secrets.toml` in **TOML** format.  
-On **Streamlit Cloud**, paste the same content into **Settings → Secrets**.
+All configuration variables are securely parsed from `.streamlit/secrets.toml` at the project root. On **Streamlit Cloud**, paste this exact content in the **Settings → Secrets** dashboard panel.
 
 ```toml
 [database]
 url = "sqlite:///finance_app.db"
 
 [jwt]
-secret = "your-secure-secret-key-here"
+secret = "your-custom-secure-jwt-secret-key"
 algorithm = "HS256"
 ttl_minutes = 60
 
 [smtp]
 host = "smtp.gmail.com"
-port = 587
+port = 465                                   # Use 465 for SSL or 587 for TLS
 username = "your-email@gmail.com"
-password = "your-app-password"
-from_email = "noreply@rupeetracker.com"
+password = "your-google-app-password"        # 16-character Google App Password (not your email login password)
+from_email = "your-email@gmail.com"
 retries = 5
 backoff_base = 2.0
 
@@ -212,291 +257,81 @@ dir = "logs"
 file = "finance_app.log"
 max_bytes = 5242880
 backup_count = 5
+
+[google_oauth]
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+redirect_uri = "http://localhost:8501/component/streamlit_oauth.authorize_button/"
 ```
 
-| Section | Key | Description | Default |
-|---|---|---|---|
-| `database` | `url` | SQLAlchemy connection string | `sqlite:///finance_app.db` |
-| `jwt` | `secret` | Secret key for signing JWT tokens | `dev-secret-change-me` |
-| `jwt` | `algorithm` | JWT signing algorithm | `HS256` |
-| `jwt` | `ttl_minutes` | Token expiry in minutes | `60` |
-| `smtp` | `host` | SMTP mail server host | — |
-| `smtp` | `port` | SMTP port | `587` |
-| `smtp` | `username` | SMTP login username | — |
-| `smtp` | `password` | SMTP login password or app password | — |
-| `smtp` | `from_email` | Sender email address | — |
-| `app` | `default_theme` | Default UI theme on first load | `dark` |
-| `app` | `budget_near_threshold` | Warning threshold ratio (0.0 – 1.0) | `0.8` |
+---
 
-> **Note:** If SMTP credentials are not configured (or left as placeholder values), the app still works — email sending will fail silently and log a warning.
+## 🔑 Google Cloud Console Setup
+
+To make the Google OAuth 2.0 sign-in flow work correctly, you must configure the Authorized Redirect URIs in your Google Cloud Console to match your environment.
+
+### 1. Authorized Redirect URIs Whitelist
+Google requires a character-for-character match of the redirect callback URI:
+* **For Local Testing (default)**:
+  `http://localhost:8501/component/streamlit_oauth.authorize_button/`
+  *(Note: If your local Streamlit runs on port 8502, change the port to 8502).*
+* **For Production Deployment (Streamlit Cloud)**:
+  `https://sourcesystask-ag3664cins9m9fr5ywqdmn.streamlit.app/component/streamlit_oauth.authorize_button/`
+
+### 2. How to Add URIs
+1. Go to the [Google Cloud Console Credentials Page](https://console.cloud.google.com/apis/credentials).
+2. Edit your Client ID: `833583551886-e7v6c43rben9j43il2h10mou5ji39t1b.apps.googleusercontent.com`
+3. Scroll to **Authorized redirect URIs** and click **Add URI**.
+4. Paste the URI matching your environment (local or deployed).
+5. Click **Save**. *Wait 1–2 minutes for Google's servers to sync.*
 
 ---
 
-## ▶ Running the App
+## 🚦 Budget Alert System & Email Receipts
 
-```bash
-# Activate virtual environment first
-venv\Scripts\activate        # Windows
-source venv/bin/activate     # macOS / Linux
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Likhitha Devarasetty
+    participant App as app.py
+    participant DB as SQLite DB
+    participant Budgets as budgets.py
+    participant Emailer as emailer.py
+    participant SMTP as SMTP Mail Server (Gmail)
 
-# Start the Streamlit server
-streamlit run frontend/app.py
+    User->>App: Submits Expense Form (₹1,500 Grocery)
+    App->>DB: Saves Expense Row
+    App->>Budgets: check_budget_status_for_expense(user_id, 'Groceries')
+    Budgets->>DB: Queries monthly Groceries spent
+    DB-->>Budgets: Returns Spent: ₹7,500 (Limit: ₹8,000)
+    Budgets-->>App: Returns Status: 'orange' (93% spent)
+    App->>Emailer: send_expense_notification_email(to_email, name, tx_id, spent, status)
+    Emailer->>Emailer: Builds premium dark-themed HTML card with orange warning
+    Emailer->>SMTP: Relays secure SMTP mail envelope
+    SMTP-->>User: Delivers gorgeous email receipt & warning box to Inbox
 ```
 
-The app launches at `http://localhost:8501`. You can:
-- **Create a new account** from the login screen
-- **Or use the demo user** (see below)
-
 ---
 
-## 👤 Demo User & Sample Data
+## 🔮 Forecasting Engine
 
-A ready-made demo account can be seeded with ~1,200 real transactions from the CSV archive files.
-
-### Option A: Seed from the Sidebar (Recommended)
-
-1. Log in with **any account**
-2. Open the **sidebar** (click the hamburger `☰` icon top-left)
-3. Click the **🔄 Reset & Seed Demo Data** button
-4. The demo user is created with credentials:
-   - **Email:** `demo@rupeetracker.com`
-   - **Password:** `demouser123`
-
-### Option B: Seed from the Command Line
-
-```bash
-python backend/seed_demo_user.py
-```
-
-This reads `archive (1)/Income_clean.csv` and `archive (1)/Expenses_clean.csv`, creates the demo user, and inserts all transactions into the database.
-
----
-
-## 📄 Pages & Features
-
-After logging in, use the **sidebar navigation** to switch between pages. Here's what each page shows:
-
----
-
-### 🏠 1. Home Dashboard
-
-The landing page after login. Gives you a complete snapshot of your financial health.
-
-| Section | What It Shows |
-|---|---|
-| **Greeting Banner** | Dynamic greeting based on time of day ("Good Morning / Afternoon / Evening") with a rotating daily finance tip |
-| **Cash Flow Health Badge** | Real-time ratio of spending vs. income — shows "High Surplus", "Balanced", or "Deficit Danger" with color coding |
-| **Finance Cards** | Three glassmorphic cards: Total Income (green), Total Expenses (red), Net Savings (green/red) |
-| **Metrics Row** | Average monthly spending, biggest spending category, and a quick "Log a New Transaction" button |
-| **Budget Alerts** | Global banner notifications — green (safe), orange (approaching limit), red (over budget) |
-| **Money Passbook** | Full transaction history table with live search, category filter, and income/expense type filter pills |
-| **Row Actions** | Select any row to edit its details or permanently delete it |
-
----
-
-### ➕ 2. Add Money Entry
-
-A form to log a single income or expense transaction.
-
-| Field | Description |
-|---|---|
-| **Type** | Select "income" or "expense" |
-| **Amount** | Transaction amount in Rupees (₹) |
-| **Date** | Date of the transaction (defaults to today) |
-| **Category** | Pick from your existing categories or create a new custom one on-the-fly |
-| **Notes** | Optional remarks — shop name, item details, etc. |
-
-On submission, the entry is saved to the database and immediately reflected in the Dashboard and Analytics pages.
-
----
-
-### 📊 3. Spending Analytics
-
-Interactive charts that visualize exactly where your money goes.
-
-| Chart | What It Shows |
-|---|---|
-| **Income vs Expenses Trend** | A Plotly line chart comparing income and expense totals over the past 3–24 months (adjustable via slider) |
-| **Category Spending Breakdown** | A bar chart showing top 10 expense categories for any selected month |
-
-All charts are theme-aware — they automatically switch between `plotly_dark` and `plotly_white` templates based on the active theme.
-
----
-
-### 🛡 4. Monthly Budgets
-
-Set spending limits and monitor your budget safety.
-
-| Section | What It Shows |
-|---|---|
-| **Budget Form** | Set a maximum spending cap for a specific month — either as a total monthly budget or per individual category |
-| **Budget Safety Cards** | Color-coded glassmorphic cards showing each budget's status with a progress bar |
-
-**Alert colors:**
-- 🟢 **Green** — Spending is well within limits (under 80%)
-- 🟠 **Orange** — Approaching the limit (80%–99% of budget consumed)
-- 🔴 **Red** — Budget exceeded (100%+ spent)
-
-The 80% threshold is configurable via `[app] budget_near_threshold` in `secrets.toml`.
-
----
-
-### 🔮 5. Future Forecast
-
-A data-driven prediction tool that estimates next month's expenses by category.
-
-| Section | What It Shows |
-|---|---|
-| **Lookback Slider** | Choose how many months of historical data to use for the prediction (1–12 months) |
-| **Comparison Bar Chart** | Side-by-side grouped bars comparing current month's spending vs. predicted next month — per category |
-| **Forecast Ledger Table** | A data table with exact predicted values for each category |
-| **Total Prediction Card** | Aggregated estimate of total expenses expected next month |
-
-The prediction engine uses a **rolling historical average** — it calculates the mean expense per category over the lookback window. At least 2 months of data are required.
-
----
-
-### 🏷 6. Manage Categories
-
-Create, rename, or delete your custom spending categories.
-
-| Section | What It Shows |
-|---|---|
-| **Active Categories List** | All categories with their internal ID codes |
-| **Add a Category** | Text input to create a new category |
-| **Rename Category** | Select an existing category and give it a new name |
-| **Delete Category** | Remove a category from your account |
-
-When a new user registers, **22 default categories** are automatically created (Salary, Groceries, Transport, Healthcare, etc.). See [Default Categories](#-default-categories).
-
----
-
-## 🔑 Authentication Flow
-
-```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Login Form    │────▶│ Verify Password  │────▶│  Issue JWT      │
-│ (email + pass)  │     │ (bcrypt check)   │     │  (session state)│
-└─────────────────┘     └──────────────────┘     └────────┬────────┘
-                                                          │
-                                                          ▼
-                                                 ┌─────────────────┐
-                                                 │ Send Login Email│
-                                                 │ (SMTP)          │
-                                                 └─────────────────┘
-```
-
-- **Registration**: Email + password → password hashed with bcrypt → stored in database → JWT issued → default categories seeded
-- **Login**: Email + password → bcrypt verification → JWT issued → login notification email sent
-- **Logout**: JWT cleared from session → logout notification email sent
-- **Password Reset**: Email-based reset code (6-digit) with 20-minute expiry → new password set via code verification
-- **Session Management**: JWT stored in `st.session_state` with configurable expiration
-
----
-
-## 🚦 Budget Alert System
-
-The budget evaluator runs on every page load and checks all active budgets for the current month:
-
-```python
-ratio = spent / limit
-
-if ratio >= 1.0:    → 🔴 RED    — "Critical Budget Alert! You have breached your limit."
-elif ratio >= 0.8:  → 🟠 ORANGE — "Warning! You have consumed X% of your budget."
-else:               → 🟢 GREEN  — "Budget Safe! Spending is well within limits."
-```
-
-Alerts are shown as banner notifications at the top of every page and as color-coded cards on the Monthly Budgets page.
-
----
-
-## 📈 Forecasting Engine
-
-The forecast service (`services/forecast.py`) provides two prediction functions:
-
-| Function | What It Does |
-|---|---|
-| `forecast_next_month()` | Predicts total expenses for next month using a rolling average |
-| `forecast_categories_next_month()` | Predicts expenses per individual category using rolling averages over a configurable lookback window |
-
-**Algorithm**: For each category, the engine collects monthly expense totals over the lookback period and returns the arithmetic mean as the predicted value.
-
----
-
-## 🏷 Default Categories
-
-Every new user automatically receives these 22 categories on registration:
-
-| Income | Everyday | Lifestyle | Financial |
-|---|---|---|---|
-| Salary / Income | Groceries | Entertainment | Savings |
-| Business / Side Hustle | Dining | Personal Care | Investment |
-| | Transport | Gifts & Donations | Insurance |
-| | Bills | Family & Kids | Loan given |
-| | Housing | Shopping | Debt return / Borrowed money |
-| | Utilities | Travel | |
-| | Healthcare | Subscriptions | |
-| | Education | Other | |
-
-Users can also create custom categories at any time from the Manage Categories page or inline when adding a transaction.
-
----
-
-## 🎨 Theme System
-
-RupeeTracker supports **Dark Mode** and **Light Mode**, switchable from the sidebar.
-
-| Property | Dark Mode | Light Mode |
-|---|---|---|
-| Background | `#07090e` (deep navy) | `#f0f2f5` (soft gray) |
-| Card Background | `rgba(13, 18, 30, 0.75)` | `rgba(255, 255, 255, 0.92)` |
-| Text Color | `#f8fafc` (off-white) | `#0f172a` (dark slate) |
-| Accent Color | `#6366f1` (indigo) | `#4f46e5` (deep indigo) |
-| Charts | `plotly_dark` template | `plotly_white` template |
-
-The theme is applied through:
-1. **CSS custom injection** — dynamic `<style>` block with theme variables
-2. **Streamlit internal config** — `st._config.set_option()` for canvas-rendered widgets (dataframes, native widgets)
-3. **Plotly templates** — charts automatically switch between dark/white templates
+The forecast service (`backend/services/forecast.py`) uses a rolling historical average algorithm to predict future spending. It analyzes past transaction records for each category across a lookback window (e.g. 6 months) and calculates the average monthly spent to project the next month's budget requirement. A minimum of 2 months of data is required for forecasting.
 
 ---
 
 ## 🧪 Running Tests
 
-The project includes **13 unit tests** covering the database layer, analytics, budgets, forecasting, and email services.
+We maintain a comprehensive test suite covering database operations, calculations, analytics aggregates, and emailing components.
 
 ```bash
 # Activate virtual environment
 venv\Scripts\activate
 
-# Run all tests
+# Run all 13 unit tests
 python -m pytest backend/tests/
 
 # Run with verbose output
 python -m pytest backend/tests/ -v
-
-# Run a specific test file
-python -m pytest backend/tests/test_repository.py
 ```
-
-### Test Coverage
-
-| Test File | What It Covers |
-|---|---|
-| `test_repository.py` | User creation, transaction CRUD, listing & limits |
-| `test_transactions_and_categories.py` | Transaction editing, deletion, category upsert & rename |
-| `test_analytics.py` | Monthly totals aggregation, category breakdowns |
-| `test_budgets_and_forecast.py` | Budget evaluation logic, basic forecast predictions |
-| `test_category_forecast.py` | Per-category forecast calculations with multi-month data |
-| `test_emailer.py` | SMTP email composition & sending (mocked) |
-
-### Syntax Check
-
-```bash
-python backend/check_compile.py
-```
-
-Returns `py_compile OK` if the main `app.py` file has no syntax errors.
 
 ---
-

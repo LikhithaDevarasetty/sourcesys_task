@@ -849,7 +849,7 @@ if not user_email:
                     else:
                         st.session_state.jwt = create_token(user.id, user.email)
                         try:
-                            send_login_email(user.email, user.email)
+                            send_login_email(user.email, getattr(user, "name", None) or user.email)
                         except Exception as e:
                             logger.warning("Notification delay: %s", e)
                         st.success("Log in successful!")
@@ -899,16 +899,20 @@ if not user_email:
                             g_email = decoded.get("email")
                             if g_email:
                                 user = repo.get_user_by_email(g_email)
+                                g_name = decoded.get("name")
                                 if not user:
                                     import secrets
                                     dummy_pass = secrets.token_urlsafe(32)
-                                    create_user(repo, g_email, dummy_pass)
+                                    create_user(repo, g_email, dummy_pass, name=g_name)
+                                    user = repo.get_user_by_email(g_email)
+                                elif not getattr(user, "name", None) and g_name:
+                                    repo.update_user_name(user.id, g_name)
                                     user = repo.get_user_by_email(g_email)
                                     
                                 if user:
                                     st.session_state.jwt = create_token(user.id, user.email)
                                     try:
-                                        send_login_email(user.email, user.email)
+                                        send_login_email(user.email, getattr(user, "name", None) or user.email)
                                     except Exception as e:
                                         logger.warning("Notification delay: %s", e)
                                     st.success("Log in successful!")
@@ -940,13 +944,16 @@ if not user_email:
             st.subheader("Create a New Account")
             st.caption("Start keeping your financial logs safe and local.")
             with st.form("auth_form", clear_on_submit=False):
+                fullname = st.text_input("Full Name", placeholder="Likhitha Devarasetty")
                 email = st.text_input("Email Address", placeholder="name@email.com")
                 password = st.text_input("Choose Password", type="password", placeholder="Minimum 8 characters")
                 submit = st.form_submit_button("Register Account", use_container_width=True)
 
             if submit:
                 import re
-                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                if not fullname or len(fullname.strip()) < 2:
+                    st.error("Please enter your full name.")
+                elif not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                     st.error("Please enter a valid email address.")
                 elif not password or len(password) < 8:
                     st.error("Your password must be at least 8 characters long.")
@@ -956,12 +963,12 @@ if not user_email:
                         st.error("This email is already registered.")
                     else:
                         try:
-                            create_user(repo, email, password)
+                            create_user(repo, email, password, name=fullname.strip())
                             user = repo.get_user_by_email(email)
                             st.success("Account created successfully!")
                             st.session_state.jwt = create_token(user.id, user.email)
                             try:
-                                send_login_email(user.email, user.email)
+                                send_login_email(user.email, getattr(user, "name", None) or user.email)
                             except Exception as e:
                                 logger.warning("Sign up email failed: %s", e)
                             st.rerun()
@@ -1000,7 +1007,7 @@ if not user_email:
                             except ImportError:
                                 from backend.services.emailer import send_reset_code_email
                             try:
-                                send_reset_code_email(reset_email, code, ttl_minutes=20)
+                                send_reset_code_email(reset_email, code, recipient_name=getattr(user_obj, "name", None), ttl_minutes=20)
                             except Exception:
                                 logger.warning("Failed to send reset code email to %s", reset_email, exc_info=True)
 
@@ -1544,6 +1551,35 @@ elif page == "Add Money Entry":
                 tx = repo.add_transaction(user.id, tx_type, dt, float(amount), currency, category_or_source, notes or None)
                 st.success(f"Successfully saved entry under reference number: #{tx.id}")
                 st.toast("Transaction written onto Passbook!", icon="💸")
+                
+                # Dynamic Budget & Expense Email Alerts
+                if tx_type == "expense":
+                    try:
+                        try:
+                            from services.budgets import check_budget_status_for_expense
+                        except ImportError:
+                            from backend.services.budgets import check_budget_status_for_expense
+                        
+                        near_threshold = float(get_config("app", "budget_near_threshold", default="0.8"))
+                        budget_alert = check_budget_status_for_expense(repo, user.id, category_or_source, date_val, near_threshold)
+                        
+                        try:
+                            from services.emailer import send_expense_notification_email
+                        except ImportError:
+                            from backend.services.emailer import send_expense_notification_email
+                            
+                        send_expense_notification_email(
+                            to_email=user.email,
+                            recipient_name=getattr(user, "name", None) or user.email,
+                            tx_id=tx.id,
+                            date_str=date_val.strftime("%Y-%m-%d"),
+                            category=category_or_source,
+                            amount=float(amount),
+                            notes=notes or None,
+                            budget_alert=budget_alert
+                        )
+                    except Exception as mail_err:
+                        logger.warning("Failed to send expense notification email for tx #%d: %s", tx.id, mail_err)
 
 elif page == "Spending Analytics":
     st.subheader("Your Money Analytics Graphs")

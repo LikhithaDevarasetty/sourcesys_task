@@ -23,6 +23,7 @@ def init_db(database_url: str) -> None:
 class UserCreate:
     email: str
     password_hash: str
+    name: Optional[str] = None
 
 
 class Repository:
@@ -43,10 +44,17 @@ class Repository:
 
     def init(self) -> None:
         init_db(self.database_url)
+        # Auto-migration: check and add 'name' column if missing in existing SQLite database
+        from sqlalchemy import text
+        try:
+            with self.engine.begin() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN name VARCHAR(255)"))
+        except Exception:
+            pass  # Already exists or table not created yet
 
     def create_user(self, user: UserCreate) -> User:
         with Session(self.engine) as session:
-            db_user = User(email=user.email, password_hash=user.password_hash)
+            db_user = User(email=user.email, password_hash=user.password_hash, name=getattr(user, "name", None))
             session.add(db_user)
             session.flush()  # Flush to generate the db_user.id
             
@@ -61,6 +69,15 @@ class Repository:
             session.commit()
             session.refresh(db_user)
             return db_user
+
+    def update_user_name(self, user_id: int, name: str) -> bool:
+        with Session(self.engine) as session:
+            user = session.get(User, user_id)
+            if not user:
+                return False
+            user.name = name
+            session.commit()
+            return True
 
     def get_user_by_email(self, email: str) -> Optional[User]:
         with Session(self.engine) as session:

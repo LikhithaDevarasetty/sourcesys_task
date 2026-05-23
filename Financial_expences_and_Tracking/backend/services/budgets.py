@@ -64,3 +64,55 @@ def evaluate_budgets(repo, user_id: int, month: Optional[str] = None, near_thres
         results.append({"id": b.id, "month": b.month, "category_id": b.category_id, "limit": limit, "spent": float(spent), "ratio": float(ratio), "status": status})
 
     return results
+
+
+def check_budget_status_for_expense(repo, user_id: int, category_name: str, date_val, near_threshold: float = 0.8) -> Optional[dict]:
+    """Helper to check the budget spent ratio for a single category or overall monthly budget.
+    
+    Returns a dictionary of budget metrics if a budget is set, otherwise returns None.
+    """
+    month_str = date_val.strftime("%Y-%m")
+    budgets = repo.list_budgets(user_id, month=month_str)
+    
+    # 1. Resolve category ID
+    cats = repo.list_categories(user_id)
+    cat = next((c for c in cats if c.name == category_name), None)
+    
+    # 2. Look for matching budget (category-specific first)
+    b = None
+    if cat:
+        b = next((x for x in budgets if x.category_id == cat.id), None)
+    if not b:
+        # Fallback to overall monthly budget
+        b = next((x for x in budgets if x.category_id is None), None)
+        
+    if not b:
+        return None
+        
+    # 3. Calculate spent for category or overall
+    txs = repo.list_transactions_for_user(user_id, limit=10000)
+    if b.category_id is None:
+        spent = sum(float(t.amount) for t in txs if t.tx_type == "expense" and t.date_time.strftime("%Y-%m") == month_str)
+        label = "Overall Monthly Budget"
+    else:
+        spent = sum(float(t.amount) for t in txs if t.tx_type == "expense" and t.date_time.strftime("%Y-%m") == month_str and t.category_or_source == category_name)
+        label = f"Category Budget ({category_name})"
+        
+    limit = float(b.limit_amount)
+    ratio = spent / limit if limit > 0 else 0.0
+    
+    if ratio >= 1.0:
+        status = "red"
+    elif ratio >= near_threshold:
+        status = "orange"
+    else:
+        status = "green"
+        
+    return {
+        "limit": limit,
+        "spent": spent,
+        "status": status,
+        "ratio_pct": int(ratio * 100),
+        "label": label
+    }
+
