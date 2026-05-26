@@ -1074,3 +1074,106 @@ A pseudo-element placed over the background to darken it for readability.
 | `div[data-testid="stHorizontalBlock"]` | `gap` | `16px` | Adds spacing between side-by-side columns |
 
 ---
+
+# Hugging_face.py-NLP vs Hugging Face
+
+Runs three NLP tasks using NLTK/spaCy and Hugging Face side by side.
+
+| Task | Traditional NLP | Hugging Face |
+|---|---|---|
+| Sentiment | NLTK VADER | distilbert-sst2 |
+| NER | spaCy en_core_web_sm | bert-large-conll03 |
+| Summarization | NLTK frequency scoring | facebook/bart-large-cnn |
+
+## Setup
+
+```bash
+pip install nltk spacy transformers torch
+python -m spacy download en_core_web_sm
+python -m nltk.downloader vader_lexicon punkt averaged_perceptron_tagger maxent_ne_chunker words stopwords
+```
+
+> HF models download automatically on first run. BART is ~1.6 GB.
+
+## Run
+
+```bash
+python nlp_vs_huggingface.py
+```
+
+## Sample Output
+
+```
+======================================================================
+    NLP (NLTK / spaCy)  vs  Hugging Face Transformers
+======================================================================
+
+─────────────────── TASK 1 · SENTIMENT ANALYSIS ───────────────────
+
+Input: The new iPhone release was absolutely fantastic and people loved it,
+       but the battery life was terrible and prices were way too high.
+
+  [NLTK VADER]
+    Label    : NEGATIVE
+    Compound : -0.0653  (pos=0.169, neg=0.143, neu=0.689)
+    Time     : 5.210s
+
+  [HuggingFace distilbert-sst2]
+    Label    : NEGATIVE
+    Score    : 0.9955
+    Time     : 24.712s
+
+──────────────── TASK 2 · NAMED ENTITY RECOGNITION ────────────────
+
+  [spaCy en_core_web_sm]
+    ORG    → Apple Inc.       PERSON → Steve Jobs
+    PERSON → Steve Wozniak    PERSON → Ronald Wayne
+    GPE    → Cupertino        GPE    → California
+    ORG    → Tesla            PERSON → SpaceX        ← misclassified
+    Time   : 3.054s
+
+  [HuggingFace bert-large-conll03]
+    ORG    → Apple Inc        PER    → Steve Jobs
+    PER    → Steve Wozniak    PER    → Ronald Wayne
+    LOC    → Cupertino        LOC    → California
+    ORG    → Tesla            ORG    → SpaceX        ← correct
+    Time   : 4.515s
+
+──────────────────── TASK 3 · SUMMARIZATION ────────────────────────
+
+  [NLTK Extractive]
+    Apple Inc. was founded by Steve Jobs, Steve Wozniak, and Ronald
+    Wayne in Cupertino, California in 1976. Elon Musk, the CEO of
+    Tesla and SpaceX, has frequently commented on Apple's dominance.
+    Time: 0.248s
+
+  [HuggingFace BART-large-cnn]
+    Apple Inc. was founded by Steve Jobs, Steve Wozniak, and Ronald
+    Wayne in 1976. In 2023, Apple became the first company to cross
+    a market cap of three trillion dollars.
+    Time: 246.932s
+
+───────────────────── OVERALL COMPARISON ───────────────────────────
+  Aspect              Traditional NLP          Hugging Face
+  ──────────────────  ──────────────────────   ──────────────────────
+  Speed               Very fast (ms)           Slower (sec, GPU helps)
+  Setup               Simple pip + download    Large model downloads
+  Accuracy            Decent for basics        State-of-the-art
+  Context awareness   Limited / rule-based     Deep via attention
+  Custom training     Manual feature eng.      Fine-tune pre-trained
+  Resource use        Low RAM, CPU only        High RAM / needs GPU
+  Best for            Production speed, rules  Research, accuracy
+======================================================================
+```
+
+> First run is slow — HF models are downloaded and cached. Subsequent runs are much faster.
+
+## When to use which
+
+**NLTK / spaCy** — fast, lightweight, CPU-friendly, good enough for simple tasks.  
+**Hugging Face** — better accuracy, understands context, needs more RAM and time.
+
+## Notes
+
+- **`KeyError: Unknown task summarization`** — fixed by calling `BartForConditionalGeneration` directly instead of `pipeline("summarization", ...)`.
+- **Symlink warning on Windows** — harmless, can be ignored.
