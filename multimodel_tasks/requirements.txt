@@ -1,0 +1,14 @@
+torch
+torchvision
+torchaudio
+transformers
+diffusers
+colpali-engine
+pymupdf
+Pillow
+requests
+datasets
+opencv-python
+soundfile
+accelerate
+numpy

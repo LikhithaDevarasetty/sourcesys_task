@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+LibriSpeech/
+librispeech/
+
+# Ignore all test-clean.tar.gz archives recursively
+test-clean.tar.gz
+**/test-clean.tar.gz
