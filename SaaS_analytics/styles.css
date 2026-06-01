@@ -1,0 +1,341 @@
+/* 
+  SaaS Business Analytics & Prediction Platform
+  Premium Glassmorphism Stylesheet
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* Global Font Override and Visual Settings */
+html, body, [data-testid="stAppViewContainer"], .stApp, .stWidget, button, input, select, textarea, p, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif !important;
+}
+
+/* Hide standard Streamlit header background/border and keep collapse/reopen button visible */
+header {
+    background-color: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+/* Hide standard top header colored decoration bar */
+[data-testid="stHeaderDecoration"] {
+    display: none !important;
+    height: 0px !important;
+}
+
+/* Remove the massive top padding above all page headings (removing the empty 'box' gap) */
+[data-testid="block-container"] {
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+}
+footer {
+    visibility: hidden !important;
+}
+#MainMenu {
+    visibility: hidden !important;
+}
+
+/* Custom CSS injection into the main Streamlit container */
+.stApp {
+    background-color: #0c091a !important;
+    background-image: 
+        radial-gradient(at 10% 20%, rgba(108, 92, 231, 0.08) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(0, 206, 201, 0.08) 0px, transparent 50%) !important;
+    background-attachment: fixed !important;
+    color: #e0e0ff !important;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(108, 92, 231, 0.2) !important;
+    box-shadow: 0 12px 40px 0 rgba(108, 92, 231, 0.15) !important;
+    transform: translateY(-4px) !important;
+}
+
+/* Glowing Accent Cards */
+.glass-card-accent-violet {
+    border-left: 4px solid #6c5ce7 !important;
+}
+.glass-card-accent-teal {
+    border-left: 4px solid #00cec9 !important;
+}
+.glass-card-accent-emerald {
+    border-left: 4px solid #00b894 !important;
+}
+.glass-card-accent-amber {
+    border-left: 4px solid #fdcb6e !important;
+}
+.glass-card-accent-crimson {
+    border-left: 4px solid #d63031 !important;
+}
+
+/* Typography styles */
+.platform-title {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 50%, #00cec9 100%);
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-weight: 800 !important;
+    font-size: 2.8rem !important;
+    letter-spacing: -0.5px !important;
+    text-align: center !important;
+    margin-bottom: 5px !important;
+}
+
+.platform-subtitle {
+    color: #b2bec3 !important;
+    text-align: center !important;
+    font-size: 1.1rem !important;
+    font-weight: 300 !important;
+    margin-bottom: 30px !important;
+}
+
+.card-title {
+    color: #e0e0ff !important;
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
+    margin-bottom: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Stat Metrics CSS override */
+.metric-value {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e0ff 100%);
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    line-height: 1.2 !important;
+}
+
+.metric-label {
+    color: #a0a0c0 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    font-weight: 500 !important;
+}
+
+.metric-delta-up {
+    color: #00b894 !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+}
+
+.metric-delta-down {
+    color: #d63031 !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+}
+
+/* Authentication Page CSS */
+.login-container {
+    max-width: 480px !important;
+    margin: 40px auto !important;
+}
+
+.login-header-logo {
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 20px !important;
+}
+
+/* Beautiful Custom Google Button */
+.google-btn {
+    width: 100% !important;
+    height: 48px !important;
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25) !important;
+    transition: background-color 0.218s, border-color 0.218s, box-shadow 0.218s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    border: 1px solid transparent !important;
+    margin-top: 15px !important;
+    margin-bottom: 20px !important;
+    text-decoration: none !important;
+}
+
+.google-btn:hover {
+    box-shadow: 0 0 3px 3px rgba(66, 133, 244, 0.3) !important;
+    background-color: #f8f9fa !important;
+}
+
+.google-icon-wrapper {
+    margin-right: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.google-icon {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.google-btn-text {
+    color: #757575 !important;
+    font-size: 14px !important;
+    letter-spacing: 0.2px !important;
+    font-weight: 600 !important;
+}
+
+/* Form inputs & Button Override for Streamlit */
+div.stButton > button {
+    background: linear-gradient(135deg, #6c5ce7 0%, #4834d4 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 8px 24px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3) !important;
+    width: 100% !important;
+}
+
+div.stButton > button:hover {
+    background: linear-gradient(135deg, #8172ff 0%, #5f4bff 100%) !important;
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5) !important;
+    transform: translateY(-2px) !important;
+}
+
+div.stButton > button:active {
+    transform: translateY(0px) !important;
+}
+
+/* TextInput Styling overrides to look like glassmorphism inputs */
+div.stTextInput > div > div > input {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    color: #e0e0ff !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stTextInput > div > div > input:focus {
+    border-color: #6c5ce7 !important;
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Divider styling */
+.divider-container {
+    display: flex !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin: 20px 0 !important;
+    color: #636e72 !important;
+    font-size: 0.85rem !important;
+}
+.divider-container::before, .divider-container::after {
+    content: '' !important;
+    flex: 1 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.divider-container:not(:empty)::before {
+    margin-right: .5em !important;
+}
+.divider-container:not(:empty)::after {
+    margin-left: .5em !important;
+}
+
+/* Alert Notification Overlay styles */
+.notification-banner {
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 20px !important;
+    border: 1px solid transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.notification-success {
+    background-color: rgba(0, 184, 148, 0.1) !important;
+    color: #2ed573 !important;
+    border-color: rgba(0, 184, 148, 0.2) !important;
+}
+
+.notification-info {
+    background-color: rgba(108, 92, 231, 0.1) !important;
+    color: #a29bfe !important;
+    border-color: rgba(108, 92, 231, 0.2) !important;
+}
+
+/* Prediction Display Styles */
+.predict-box {
+    text-align: center !important;
+    padding: 30px !important;
+    border-radius: 16px !important;
+    background: radial-gradient(circle, rgba(108, 92, 231, 0.15) 0%, transparent 100%) !important;
+}
+
+.predict-percentage {
+    font-size: 3.5rem !important;
+    font-weight: 800 !important;
+    margin: 10px 0 !important;
+    letter-spacing: -1px !important;
+}
+
+.risk-level {
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    font-size: 0.9rem !important;
+}
+
+/* Sidebar Custom Styling */
+section[data-testid="stSidebar"] {
+    background-color: #080612 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+section[data-testid="stSidebar"] div.stRadio > div {
+    gap: 8px !important;
+}
+
+section[data-testid="stSidebar"] div.stRadio label {
+    background-color: rgba(255, 255, 255, 0.01) !important;
+    border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    color: #a0a0c0 !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+section[data-testid="stSidebar"] div.stRadio label:hover {
+    background-color: rgba(108, 92, 231, 0.05) !important;
+    color: #e0e0ff !important;
+    border-color: rgba(108, 92, 231, 0.2) !important;
+}
+
+section[data-testid="stSidebar"] div.stRadio label[data-checked="true"] {
+    background-color: rgba(108, 92, 231, 0.15) !important;
+    color: #ffffff !important;
+    border-color: rgba(108, 92, 231, 0.4) !important;
+    font-weight: 600 !important;
+}
+
+/* Hide standard Streamlit header hover link icons */
+a.class-header-anchor, a.header-anchor, .stMarkdown a.header-anchor {
+    display: none !important;
+}

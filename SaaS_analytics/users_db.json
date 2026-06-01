@@ -1,0 +1,18 @@
+{
+    "admin@saas.com": {
+        "name": "Platform Administrator",
+        "password": "admin123"
+    },
+    "kamalidevarasetty@gmail.com": {
+        "name": "Kamali Devarasetty",
+        "password": "admin123"
+    },
+    "user@demo.com": {
+        "name": "Demo User",
+        "password": "user123"
+    },
+    "likhithadevarasetty145@gmail.com": {
+        "name": "likhitha",
+        "password": "likhitha145"
+    }
+}

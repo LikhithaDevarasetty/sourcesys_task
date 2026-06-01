@@ -1,0 +1,20 @@
+# Local Environment Configuration (Confidential SMTP Secrets)
+
+.env
+*.env
+# Persistent User Authentication Database (Confidential Credentials)
+users_db.json
+
+# Transactional Email Dispatch Logs (Confidential Recipient Info)
+sent_emails_log.txt
+
+# Python Caching & Compiled Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Operating System & IDE Configurations
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
