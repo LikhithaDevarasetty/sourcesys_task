@@ -1,5 +1,6 @@
 # components/login.py
 import time
+import os
 import streamlit as st
 from utils.email_service import send_login_email_async, send_password_reset_email_async, send_welcome_email_async
 from utils.auth_db import verify_user, register_user
@@ -13,10 +14,16 @@ def render_login_page():
         st.session_state.reset_email = None
         
     try:
-        with open("styles.css", "r") as f:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        css_path = os.path.join(current_dir, "..", "styles.css")
+        if not os.path.exists(css_path):
+            css_path = os.path.join(current_dir, "styles.css")
+            
+        with open(css_path, "r", encoding="utf-8") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except:
+    except Exception as e:
         pass
+
 
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     
