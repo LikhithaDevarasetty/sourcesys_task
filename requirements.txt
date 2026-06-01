@@ -1,1 +1,5 @@
--r Financial_expences_and_Tracking/requirements.txt
+streamlit
+pandas
+numpy
+plotly
+scikit-learn
