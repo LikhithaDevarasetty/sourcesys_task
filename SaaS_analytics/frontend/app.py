@@ -66,7 +66,7 @@ def handle_google_oauth_callback():
         creds = get_google_oauth_secrets()
         client_id = creds.get("client_id")
         client_secret = creds.get("client_secret")
-        redirect_uri = creds.get("redirect_uri", "http://localhost:8501")
+        redirect_uri = creds.get("redirect_uri", "https://likhithadevarasetty-sourcesys--saas-analyticsfrontendapp-cqtwwz.streamlit.app/component/streamlit_oauth.authorize_button/")
         
         if not client_id or not client_secret:
             st.error("Google OAuth secrets are not fully configured. Cannot complete sign-in.")

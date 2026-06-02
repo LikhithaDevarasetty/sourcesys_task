@@ -12,3 +12,5 @@ jinja2
 tenacity
 authlib
 streamlit-oauth
+sendgrid
+python-dotenv
