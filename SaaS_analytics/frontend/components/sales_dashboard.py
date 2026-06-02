@@ -22,6 +22,19 @@ def render_sales_dashboard(df):
     st.markdown('<h1 class="platform-title" style="text-align: left; font-size: 2.2rem; margin-bottom: 5px;">Executive Sales Analytics Workspace</h1>', unsafe_allow_html=True)
     st.markdown(f'<p class="platform-subtitle" style="text-align: left; margin-bottom: 25px;">Real-time business performance metrics updated through {metrics["latest_month"]}</p>', unsafe_allow_html=True)
     
+    # Render Absent Columns Warning Banner if any are found
+    absent_cols = st.session_state.get("active_sales_absent", [])
+    if absent_cols:
+        cols_formatted = ", ".join([f"<code>{col}</code>" for col in absent_cols])
+        st.markdown(
+            f"""
+            <div class="notification-banner notification-info" style="margin-bottom: 20px; border-left: 5px solid #fdcb6e;">
+                ⚠️ <strong>Custom Dataset Notice</strong>: The following elements are absent in your uploaded dataset and have been automatically resolved with defaults: {cols_formatted}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
     # 2. Executive KPI Cards Grid (using Streamlit columns)
     col1, col2, col3, col4 = st.columns(4)
     

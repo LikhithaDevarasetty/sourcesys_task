@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 @st.cache_resource
@@ -32,12 +32,11 @@ def train_churn_model(df):
     feature_columns = X.columns.tolist()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     
-    model = RandomForestClassifier(
+    model = GradientBoostingClassifier(
         n_estimators=100,
-        max_depth=8,
-        min_samples_leaf=4,
-        random_state=42,
-        class_weight='balanced'
+        learning_rate=0.05,
+        max_depth=4,
+        random_state=42
     )
     model.fit(X_train, y_train)
     

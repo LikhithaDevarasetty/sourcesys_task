@@ -18,6 +18,19 @@ def render_churn_predictor(df):
     st.markdown('<h1 class="platform-title" style="text-align: left; font-size: 2.2rem; margin-bottom: 5px;">Customer Churn Risk Analysis</h1>', unsafe_allow_html=True)
     st.markdown('<p class="platform-subtitle" style="text-align: left; margin-bottom: 25px;">Predict customer churn probability and generate structured retention playbooks based on customer attributes</p>', unsafe_allow_html=True)
     
+    # Render Absent Columns Warning Banner if any are found
+    absent_cols = st.session_state.get("active_churn_absent", [])
+    if absent_cols:
+        cols_formatted = ", ".join([f"<code>{col}</code>" for col in absent_cols])
+        st.markdown(
+            f"""
+            <div class="notification-banner notification-info" style="margin-bottom: 20px; border-left: 5px solid #fdcb6e;">
+                ⚠️ <strong>Custom Dataset Notice</strong>: The following elements are absent in your uploaded dataset and have been automatically resolved with defaults: {cols_formatted}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
     # 1. Train the ML model dynamically (cached)
     with st.spinner("Loading Churn Prediction Model..."):
         model_pack = train_churn_model(df)
