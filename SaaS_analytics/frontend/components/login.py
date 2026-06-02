@@ -184,16 +184,13 @@ def _render_login_view():
                     st.error("Failed to initialize Google OAuth component.")
                 else:
                     try:
-                        # Centering the authorize button using columns
-                        col_l, col_m, col_r = st.columns([1, 5, 1])
-                        with col_m:
-                            result = oauth2.authorize_button(
-                                name="Continue with Google",
-                                icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
-                                redirect_uri=redirect_uri,
-                                scope="openid email profile",
-                                key="google_login_auth"
-                            )
+                        result = oauth2.authorize_button(
+                            name="Continue with Google",
+                            icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+                            redirect_uri=redirect_uri,
+                            scope="openid email profile",
+                            key="google_login_auth"
+                        )
                     except Exception as e:
                         # Gracefully clean up parameters on mismatch error
                         st.query_params.clear()
@@ -277,16 +274,13 @@ def _render_signup_view():
                     st.error("Failed to initialize Google OAuth component.")
                 else:
                     try:
-                        # Centering the authorize button using columns
-                        col_l, col_m, col_r = st.columns([1, 5, 1])
-                        with col_m:
-                            result = oauth2.authorize_button(
-                                name="Continue with Google",
-                                icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
-                                redirect_uri=redirect_uri,
-                                scope="openid email profile",
-                                key="google_signup_auth"
-                            )
+                        result = oauth2.authorize_button(
+                            name="Continue with Google",
+                            icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+                            redirect_uri=redirect_uri,
+                            scope="openid email profile",
+                            key="google_signup_auth"
+                        )
                     except Exception as e:
                         st.query_params.clear()
                         result = None

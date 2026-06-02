@@ -366,7 +366,31 @@ a.class-header-anchor, a.header-anchor, .stMarkdown a.header-anchor {
     align-items: center !important;
 }
 
-/* Ensure the streamlit-oauth authorization button has custom styles and is centered */
+/* Center all iframe components (such as the Google authorize button iframe) */
+.login-container iframe {
+    display: block !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+}
+
+/* Force intermediate container wrappers to center the iframe horizontally */
+.login-container div.element-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+}
+
+.login-container div[data-testid="stVerticalBlock"] > div.element-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+}
+
+/* Ensure the streamlit-oauth authorization button itself has custom styles and is centered */
 .login-container a[href*="accounts.google.com"] {
     display: flex !important;
     align-items: center !important;
