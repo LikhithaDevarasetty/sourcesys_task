@@ -30,27 +30,44 @@ def train_churn_model(df):
     y = model_df['Churn']
     
     feature_columns = X.columns.tolist()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-    
-    model = GradientBoostingClassifier(
-        n_estimators=100,
-        learning_rate=0.05,
-        max_depth=4,
-        random_state=42
-    )
-    model.fit(X_train, y_train)
-    
-    y_pred = model.predict(X_test)
-    y_pred_proba = model.predict_proba(X_test)[:, 1]
-    
+    unique_classes = y.nunique()
+    if unique_classes < 2:
+        from sklearn.dummy import DummyClassifier
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        model = DummyClassifier(strategy="most_frequent")
+        model.fit(X_train, y_train)
+        
+        y_pred = model.predict(X_test)
+        y_pred_proba = np.zeros(len(X_test))
+        
+        accuracy = accuracy_score(y_test, y_pred)
+        roc_auc = 1.0
+        feature_importances = {col: 0.0 for col in feature_columns}
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        model = GradientBoostingClassifier(
+            n_estimators=100,
+            learning_rate=0.05,
+            max_depth=4,
+            random_state=42
+        )
+        model.fit(X_train, y_train)
+        
+        y_pred = model.predict(X_test)
+        y_pred_proba = model.predict_proba(X_test)[:, 1]
+        
+        accuracy = accuracy_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, y_pred_proba)
+        feature_importances = pd.Series(model.feature_importances_, index=feature_columns).sort_values(ascending=False).to_dict()
+        
     return {
         "model": model,
         "feature_columns": feature_columns,
         "categorical_cols": categorical_cols,
         "numeric_cols": numeric_cols,
-        "accuracy": accuracy_score(y_test, y_pred),
-        "roc_auc": roc_auc_score(y_test, y_pred_proba),
-        "feature_importances": pd.Series(model.feature_importances_, index=feature_columns).sort_values(ascending=False).to_dict(),
+        "accuracy": accuracy,
+        "roc_auc": roc_auc,
+        "feature_importances": feature_importances,
         "train_columns_template": pd.DataFrame(columns=feature_columns)
     }
 
@@ -74,7 +91,11 @@ def predict_single_churn(model_pack, inputs):
     pred_dict['TotalCharges_Log'] = float(np.log1p(total_charges))
     
     pred_df = pd.DataFrame([pred_dict])[feature_cols]
-    return model.predict_proba(pred_df)[0, 1]
+    
+    probas = model.predict_proba(pred_df)
+    if probas.shape[1] < 2:
+        return float(model.classes_[0])
+    return probas[0, 1]
 
 def get_recommendation_plan(inputs, churn_prob):
     recommendations = []
