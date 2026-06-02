@@ -52,13 +52,12 @@ def train_churn_model(df):
     model_df = df[categorical_cols + numeric_cols + ['Churn']].copy()
 
     # ── 2. Encode target ────────────────────────────────────────────────────
-    churn_col = model_df['Churn']
-    if churn_col.dtype == object:
-        model_df['Churn'] = churn_col.map(
-            lambda v: 1 if str(v).strip().lower() in ('yes', '1', 'true', 'churned') else 0
-        ).astype(int)
-    else:
-        model_df['Churn'] = churn_col.fillna(0).astype(int)
+    # Always convert via string mapping first — avoids dtype issues with
+    # ArrowDtype string columns in newer pandas (can't cast str → int directly)
+    churn_col = model_df['Churn'].fillna('No')
+    model_df['Churn'] = churn_col.apply(
+        lambda v: 1 if str(v).strip().lower() in ('yes', '1', 'true', 'churned') else 0
+    ).astype(int)
 
     # ── 3. Build feature matrix ─────────────────────────────────────────────
     # Categorical → one-hot
