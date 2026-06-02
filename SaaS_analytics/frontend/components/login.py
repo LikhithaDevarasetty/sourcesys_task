@@ -29,6 +29,13 @@ def decode_google_id_token(id_token):
     except Exception:
         return None
 
+@st.cache_resource
+def get_oauth2_component(client_id, client_secret):
+    if not HAS_OAUTH:
+        return None
+    return OAuth2Component(client_id, client_secret, AUTHORIZE_URL, TOKEN_URL, TOKEN_URL, REVOKE_URL)
+
+
 
 def get_google_oauth_secrets():
     # 1. Try Streamlit Secrets first
@@ -173,39 +180,47 @@ def _render_login_view():
         elif not HAS_OAUTH:
             st.error("streamlit-oauth package is missing. Please add it to requirements.txt.")
         else:
-            oauth2 = OAuth2Component(client_id, client_secret, AUTHORIZE_URL, TOKEN_URL, TOKEN_URL, REVOKE_URL)
-            result = oauth2.authorize_button(
-                name="Continue with Google",
-                icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
-                redirect_uri=redirect_uri,
-                scope="openid email profile",
-                key="google_login_auth"
-            )
-            
-            if result:
-                id_token = result.get("token", {}).get("id_token")
-                if id_token:
-                    user_info = decode_google_id_token(id_token)
-                    if user_info:
-                        email = user_info.get("email")
-                        if email:
-                            email_clean = email.strip().lower()
-                            from utils.auth_db import load_users
-                            users = load_users()
-                            
-                            if email_clean not in users:
-                                st.error(f"No account found for '{email_clean}'. Please select 'Create an Account' first and sign up with Google!")
-                            else:
-                                # Trigger Asynchronous SMTP Sign-In Confirmation Email!
-                                client_details = {"ip": "127.0.0.1 (Google OAuth)", "browser": "Chrome / Windows OS"}
-                                smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
-                                send_login_email_async(email_clean, smtp_conf, client_details)
+            oauth2 = get_oauth2_component(client_id, client_secret)
+            if not oauth2:
+                st.error("Failed to initialize Google OAuth component.")
+            else:
+                try:
+                    result = oauth2.authorize_button(
+                        name="Continue with Google",
+                        icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+                        redirect_uri=redirect_uri,
+                        scope="openid email profile",
+                        key="google_login_auth"
+                    )
+                except Exception as e:
+                    # Gracefully clean up parameters on mismatch error
+                    st.query_params.clear()
+                    result = None
+                    
+                if result:
+                    id_token = result.get("token", {}).get("id_token")
+                    if id_token:
+                        user_info = decode_google_id_token(id_token)
+                        if user_info:
+                            email = user_info.get("email")
+                            if email:
+                                email_clean = email.strip().lower()
+                                from utils.auth_db import load_users
+                                users = load_users()
                                 
-                                st.success(f"Welcome back, {users[email_clean]['name']}! Loading dashboard...")
-                                time.sleep(0.8)
-                                st.session_state.logged_in = True
-                                st.session_state.user_email = email_clean
-                                st.rerun()
+                                if email_clean not in users:
+                                    st.error(f"No account found for '{email_clean}'. Please select 'Create an Account' first and sign up with Google!")
+                                else:
+                                    # Trigger Asynchronous SMTP Sign-In Confirmation Email!
+                                    client_details = {"ip": "127.0.0.1 (Google OAuth)", "browser": "Chrome / Windows OS"}
+                                    smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
+                                    send_login_email_async(email_clean, smtp_conf, client_details)
+                                    
+                                    st.success(f"Welcome back, {users[email_clean]['name']}! Loading dashboard...")
+                                    time.sleep(0.8)
+                                    st.session_state.logged_in = True
+                                    st.session_state.user_email = email_clean
+                                    st.rerun()
             
     st.markdown('<div class="divider-container">or</div>', unsafe_allow_html=True)
     if st.button("Create an Account (Sign Up)", key="btn_signup_trig"):
@@ -258,44 +273,51 @@ def _render_signup_view():
         elif not HAS_OAUTH:
             st.error("streamlit-oauth package is missing. Please add it to requirements.txt.")
         else:
-            oauth2 = OAuth2Component(client_id, client_secret, AUTHORIZE_URL, TOKEN_URL, TOKEN_URL, REVOKE_URL)
-            result = oauth2.authorize_button(
-                name="Continue with Google",
-                icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
-                redirect_uri=redirect_uri,
-                scope="openid email profile",
-                key="google_signup_auth"
-            )
-            
-            if result:
-                id_token = result.get("token", {}).get("id_token")
-                if id_token:
-                    user_info = decode_google_id_token(id_token)
-                    if user_info:
-                        email = user_info.get("email")
-                        if email:
-                            email_clean = email.strip().lower()
-                            display_name = google_su_name.strip()
-                            
-                            from utils.auth_db import load_users, register_user
-                            users = load_users()
-                            smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
-                            
-                            if email_clean in users:
-                                st.success("An account with this Google email already exists! Logging you in...")
-                            else:
-                                success, msg = register_user(display_name, email_clean, "google_federated_pass_123")
-                                if success:
-                                    send_welcome_email_async(email_clean, display_name, smtp_conf)
-                                    st.success("Account successfully created!")
+            oauth2 = get_oauth2_component(client_id, client_secret)
+            if not oauth2:
+                st.error("Failed to initialize Google OAuth component.")
+            else:
+                try:
+                    result = oauth2.authorize_button(
+                        name="Continue with Google",
+                        icon="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+                        redirect_uri=redirect_uri,
+                        scope="openid email profile",
+                        key="google_signup_auth"
+                    )
+                except Exception as e:
+                    st.query_params.clear()
+                    result = None
+                    
+                if result:
+                    id_token = result.get("token", {}).get("id_token")
+                    if id_token:
+                        user_info = decode_google_id_token(id_token)
+                        if user_info:
+                            email = user_info.get("email")
+                            if email:
+                                email_clean = email.strip().lower()
+                                display_name = google_su_name.strip()
+                                
+                                from utils.auth_db import load_users, register_user
+                                users = load_users()
+                                smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
+                                
+                                if email_clean in users:
+                                    st.success("An account with this Google email already exists! Logging you in...")
                                 else:
-                                    st.error(f"Error provisioning account: {msg}")
-                                    st.stop()
-                                    
-                            time.sleep(0.8)
-                            st.session_state.logged_in = True
-                            st.session_state.user_email = email_clean
-                            st.rerun()
+                                    success, msg = register_user(display_name, email_clean, "google_federated_pass_123")
+                                    if success:
+                                        send_welcome_email_async(email_clean, display_name, smtp_conf)
+                                        st.success("Account successfully created!")
+                                    else:
+                                        st.error(f"Error provisioning account: {msg}")
+                                        st.stop()
+                                        
+                                time.sleep(0.8)
+                                st.session_state.logged_in = True
+                                st.session_state.user_email = email_clean
+                                st.rerun()
                 
     st.markdown('<div class="divider-container">or register manually</div>', unsafe_allow_html=True)
     
