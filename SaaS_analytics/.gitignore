@@ -4,6 +4,7 @@ backend/.env
 backend/*.env
 # Persistent User Authentication Database (Confidential Credentials)
 backend/users_db.json
+backend/google_creds.json
 
 # Transactional Email Dispatch Logs (Confidential Recipient Info)
 backend/sent_emails_log.txt

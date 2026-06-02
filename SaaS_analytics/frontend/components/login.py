@@ -4,6 +4,31 @@ import os
 import streamlit as st
 from utils.email_service import send_login_email_async, send_password_reset_email_async, send_welcome_email_async
 from utils.auth_db import verify_user, register_user
+import json
+
+def get_google_oauth_secrets():
+    # 1. Try Streamlit Secrets first
+    if "google_oauth" in st.secrets:
+        return {
+            "client_id": st.secrets["google_oauth"].get("client_id"),
+            "client_secret": st.secrets["google_oauth"].get("client_secret"),
+            "redirect_uri": st.secrets["google_oauth"].get("redirect_uri", "http://localhost:8501")
+        }
+    
+    # 2. Try local git-ignored JSON file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir) if os.path.basename(current_dir) == "frontend" else current_dir
+    creds_path = os.path.join(project_root, "backend", "google_creds.json")
+    
+    if os.path.exists(creds_path):
+        try:
+            with open(creds_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            pass
+            
+    return {}
+
 
 def render_login_page():
     if "auth_page" not in st.session_state:
@@ -108,38 +133,26 @@ def _render_login_view():
         
         st.markdown('<div style="margin-top: 15px;"></div>', unsafe_allow_html=True)
         
-        google_email = st.text_input("Google Account Email", placeholder="your.name@gmail.com", key="txt_google_email_login", value="")
-        
-        st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
-        
         if st.button("Continue with Google", key="btn_google_login"):
-            if not google_email or "@" not in google_email:
-                st.error("Please enter a valid Google email address.")
+            creds = get_google_oauth_secrets()
+            client_id = creds.get("client_id")
+            redirect_uri = creds.get("redirect_uri", "http://localhost:8501")
+            
+            if not client_id:
+                st.error("Google OAuth client ID is not configured. Please check backend/google_creds.json or Streamlit Secrets.")
             else:
-                with st.spinner("Connecting to Google Account..."):
-                    time.sleep(1.0)
-                    
-                email_clean = google_email.strip().lower()
-                from utils.auth_db import load_users, register_user
-                users = load_users()
+                import urllib.parse
+                state = "login"
+                scope = "openid email profile"
+                auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={client_id}&redirect_uri={urllib.parse.quote(redirect_uri)}&scope={urllib.parse.quote(scope)}&state={state}"
                 
-                smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
-                
-                if email_clean not in users:
-                    # Dynamic provision for Google Federated Sign-in
-                    name_from_email = email_clean.split("@")[0].capitalize()
-                    register_user(name_from_email, email_clean, "google_federated_pass_123")
-                    send_welcome_email_async(email_clean, name_from_email, smtp_conf)
-                else:
-                    client_details = {"ip": "127.0.0.1 (Google Sign-in)", "browser": "Chrome / Windows OS"}
-                    send_login_email_async(email_clean, smtp_conf, client_details)
-                
-                st.success("Successfully authenticated via Google Account!")
-                time.sleep(0.8)
-                
-                st.session_state.logged_in = True
-                st.session_state.user_email = email_clean
-                st.rerun()
+                # Execute browser redirect
+                st.markdown(f"""
+                    <meta http-equiv="refresh" content="0; url={auth_url}">
+                    <script>window.location.href = "{auth_url}";</script>
+                """, unsafe_allow_html=True)
+                st.info("Redirecting to Google Sign-In...")
+                st.stop()
             
     st.markdown('<div class="divider-container">or</div>', unsafe_allow_html=True)
     if st.button("Create an Account (Sign Up)", key="btn_signup_trig"):
@@ -175,42 +188,34 @@ def _render_signup_view():
     
     st.markdown('<div style="margin-top: 15px;"></div>', unsafe_allow_html=True)
     
-    google_su_email = st.text_input("Google Email Address", placeholder="your.name@gmail.com", key="txt_google_signup_email", value="")
     google_su_name = st.text_input("Full Name (Display)", placeholder="Jane Doe", key="txt_google_signup_name", value="")
     
     st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
     
-    if st.button("Sign Up with Google", key="btn_google_signup"):
-        if not google_su_email or "@" not in google_su_email:
-            st.error("Please enter a valid Google Account email.")
-        elif not google_su_name.strip():
+    if st.button("Continue with Google", key="btn_google_signup"):
+        if not google_su_name.strip():
             st.error("Please enter your display name.")
         else:
-            with st.spinner("Authorizing with Google..."):
-                time.sleep(1.0)
-                
-            email_clean = google_su_email.strip().lower()
-            name_clean = google_su_name.strip()
+            creds = get_google_oauth_secrets()
+            client_id = creds.get("client_id")
+            redirect_uri = creds.get("redirect_uri", "http://localhost:8501")
             
-            success, msg = register_user(name_clean, email_clean, "google_federated_pass_123")
-            smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
-            
-            if success or "already linked" in msg:
-                if success:
-                    send_welcome_email_async(email_clean, name_clean, smtp_conf)
-                else:
-                    client_details = {"ip": "127.0.0.1 (Google Sign-up)", "browser": "Chrome / Windows OS"}
-                    send_login_email_async(email_clean, smtp_conf, client_details)
-                
-                st.success("Successfully registered via Google Account!")
-                time.sleep(0.8)
-                
-                st.session_state.logged_in = True
-                st.session_state.user_email = email_clean
-                st.session_state.auth_page = "login"
-                st.rerun()
+            if not client_id:
+                st.error("Google OAuth client ID is not configured. Please check backend/google_creds.json or Streamlit Secrets.")
             else:
-                st.error(msg)
+                import urllib.parse
+                username_clean = google_su_name.strip()
+                state = f"signup:{username_clean}"
+                scope = "openid email profile"
+                auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={client_id}&redirect_uri={urllib.parse.quote(redirect_uri)}&scope={urllib.parse.quote(scope)}&state={urllib.parse.quote(state)}"
+                
+                # Execute browser redirect
+                st.markdown(f"""
+                    <meta http-equiv="refresh" content="0; url={auth_url}">
+                    <script>window.location.href = "{auth_url}";</script>
+                """, unsafe_allow_html=True)
+                st.info("Redirecting to Google Sign-Up...")
+                st.stop()
                 
     st.markdown('<div class="divider-container">or register manually</div>', unsafe_allow_html=True)
     
