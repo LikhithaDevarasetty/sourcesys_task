@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.dummy import DummyClassifier
 
@@ -60,21 +60,36 @@ def train_churn_model(df):
     ).astype(int)
 
     # ── 3. Build feature matrix ─────────────────────────────────────────────
-    # Categorical → one-hot
+    # Categorical → one-hot (NaN rows produce NaN dummies → fill with 0)
     if categorical_cols:
-        X_cat = pd.get_dummies(model_df[categorical_cols], drop_first=True, dtype=int)
+        X_cat = pd.get_dummies(model_df[categorical_cols], drop_first=True, dtype=float)
+        X_cat = X_cat.fillna(0)  # NaN in cat cols → treat as "not that category"
     else:
         X_cat = pd.DataFrame(index=model_df.index)
 
     # Numeric → keep + log-transform TotalCharges if present
     X_num = model_df[numeric_cols].copy()
+    for nc in X_num.columns:
+        X_num[nc] = pd.to_numeric(X_num[nc], errors='coerce')
     if 'TotalCharges' in X_num.columns:
-        X_num['TotalCharges_Log'] = np.log1p(X_num['TotalCharges'])
+        X_num['TotalCharges_Log'] = np.log1p(X_num['TotalCharges'].fillna(0))
         X_num = X_num.drop(columns=['TotalCharges'])
 
     X = pd.concat([X_cat, X_num], axis=1)
-    y = model_df['Churn']
 
+    # ── Impute remaining NaNs: numeric cols → column median, dummies → 0 ────
+    num_medians = {}  # store so predict_single_churn can apply same fills
+    for col in X.columns:
+        if X[col].isna().any():
+            median_val = X[col].median()
+            if pd.isna(median_val):
+                median_val = 0.0
+            X[col] = X[col].fillna(median_val)
+            num_medians[col] = float(median_val)
+        else:
+            num_medians[col] = float(X[col].median()) if X[col].dtype != object else 0.0
+
+    y = model_df['Churn']
     feature_columns = X.columns.tolist()
     unique_classes = y.nunique()
 
@@ -95,11 +110,11 @@ def train_churn_model(df):
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42, stratify=y
         )
-        model = GradientBoostingClassifier(
-            n_estimators=150,
+        # HistGradientBoostingClassifier handles NaN natively & is faster
+        model = HistGradientBoostingClassifier(
+            max_iter=200,
             learning_rate=0.05,
             max_depth=4,
-            subsample=0.8,
             min_samples_leaf=20,
             random_state=42
         )
@@ -110,6 +125,7 @@ def train_churn_model(df):
 
         accuracy = accuracy_score(y_test, y_pred)
         roc_auc = roc_auc_score(y_test, y_pred_proba)
+        # HistGBT exposes feature importances via .feature_importances_
         feature_importances = (
             pd.Series(model.feature_importances_, index=feature_columns)
             .sort_values(ascending=False)
@@ -122,6 +138,7 @@ def train_churn_model(df):
         "categorical_cols": categorical_cols,
         "numeric_cols": [c for c in numeric_cols if c != 'TotalCharges'],  # after log-transform
         "has_total_charges": 'TotalCharges' in numeric_cols,
+        "col_medians": num_medians,   # used by predict_single_churn for NaN safety
         "accuracy": accuracy,
         "roc_auc": roc_auc,
         "feature_importances": feature_importances,
@@ -170,6 +187,12 @@ def predict_single_churn(model_pack, inputs):
         pred_dict['TotalCharges_Log'] = float(np.log1p(tc))
 
     pred_df = pd.DataFrame([pred_dict])[feature_cols]
+
+    # Apply same NaN imputation as training (use stored medians)
+    col_medians = model_pack.get("col_medians", {})
+    for col in pred_df.columns:
+        if pred_df[col].isna().any():
+            pred_df[col] = pred_df[col].fillna(col_medians.get(col, 0.0))
 
     probas = model.predict_proba(pred_df)
     if probas.shape[1] < 2:
