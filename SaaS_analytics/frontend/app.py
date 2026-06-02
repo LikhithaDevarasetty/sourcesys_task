@@ -61,21 +61,29 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = None
 if "smtp_settings" not in st.session_state:
     if "smtp" in st.secrets:
+        host = st.secrets["smtp"].get("host", "smtp.gmail.com")
+        username = st.secrets["smtp"].get("username", "")
+        if "gmail.com" in username.lower() and "sendgrid" in host.lower():
+            host = "smtp.gmail.com"
         st.session_state.smtp_settings = {
             "demo_mode": st.secrets["smtp"].get("demo_mode", False),
-            "host": st.secrets["smtp"].get("host", "smtp.gmail.com"),
+            "host": host,
             "port": int(st.secrets["smtp"].get("port", 587)),
-            "username": st.secrets["smtp"].get("username", ""),
+            "username": username,
             "password": st.secrets["smtp"].get("password", ""),
-            "sender_email": st.secrets["smtp"].get("sender_email", "")
+            "sender_email": st.secrets["smtp"].get("sender_email", st.secrets["smtp"].get("from_email", ""))
         }
     else:
+        host = env_config.get("SMTP_HOST", "smtp.gmail.com")
+        username = env_config.get("SMTP_USERNAME", "")
+        if "gmail.com" in username.lower() and "sendgrid" in host.lower():
+            host = "smtp.gmail.com"
         has_env = "SMTP_HOST" in env_config
         st.session_state.smtp_settings = {
             "demo_mode": not has_env,
-            "host": env_config.get("SMTP_HOST", "smtp.gmail.com"),
+            "host": host,
             "port": int(env_config.get("SMTP_PORT", 587)),
-            "username": env_config.get("SMTP_USERNAME", ""),
+            "username": username,
             "password": env_config.get("SMTP_PASSWORD", ""),
             "sender_email": env_config.get("EMAIL_FROM", "")
         }

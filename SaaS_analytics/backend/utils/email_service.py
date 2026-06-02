@@ -21,7 +21,12 @@ def _send_email_worker(subject, recipient, html_body, smtp_config=None):
             port = int(smtp_config.get("port", 587))
             username = smtp_config["username"]
             password = smtp_config["password"]
-            sender = smtp_config.get("sender_email", username) or "no-reply@saas-analytics.com"
+            
+            # Auto-correct host if user provides Gmail credentials but SendGrid host
+            if "gmail.com" in username.lower() and "sendgrid" in host.lower():
+                host = "smtp.gmail.com"
+                
+            sender = smtp_config.get("sender_email") or smtp_config.get("from_email") or username or "no-reply@saas-analytics.com"
             
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
@@ -56,7 +61,7 @@ def _send_email_worker(subject, recipient, html_body, smtp_config=None):
             with open(MOCK_EMAIL_LOG, "a", encoding="utf-8") as f:
                 f.write(f"\n" + "="*80 + f"\n")
                 f.write(f"[{now_str}] EMAIL DISPATCH SIMULATION\n")
-                from_addr = smtp_config.get("sender_email", "no-reply@saas-analytics.com") if smtp_config else "no-reply@saas-analytics.com"
+                from_addr = (smtp_config.get("sender_email") or smtp_config.get("from_email") or username or "no-reply@saas-analytics.com") if smtp_config else "no-reply@saas-analytics.com"
                 f.write(f"FROM: {from_addr}\n")
                 f.write(f"TO: {recipient}\n")
                 f.write(f"SUBJECT: {subject}\n")
