@@ -1,13 +1,7 @@
 # utils/ml_model.py
 """
-Churn ML Model — fully hardened against:
-  - NaN / missing values in any column
-  - Single-class targets
-  - Tiny datasets (< 10 rows)
-  - Missing sklearn attributes across versions
-  - ArrowDtype / object dtype mismatches
-  - Empty DataFrames
-  - Any column type the user might upload
+Churn ML Model — fully hardened against all known failure modes.
+Never raises an uncaught exception from any public function.
 """
 import pandas as pd
 import numpy as np
@@ -17,7 +11,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.dummy import DummyClassifier
 
-# Columns that are NEVER features (identifiers, targets, derived cols)
+# Columns that are NEVER features
 _EXCLUDE = {
     'Churn', 'customerID', 'TenureGroup', 'Row ID', 'Customer ID',
     'Order Date', 'Order_Month', 'Order_Month_Str', 'Order_Year',
@@ -25,51 +19,32 @@ _EXCLUDE = {
 }
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Column auto-detection
-# ──────────────────────────────────────────────────────────────────────────────
 def _detect_columns(df):
-    """
-    Return (categorical_cols, numeric_cols) based on what's actually in df.
-    Excludes identifier/target columns and columns with zero variance.
-    """
+    """Auto-detect categorical and numeric columns from df, skipping excludes and zero-variance cols."""
     usable = [c for c in df.columns if c not in _EXCLUDE]
-
     cat_cols, num_cols = [], []
     for col in usable:
         try:
             series = df[col]
-            # Convert ArrowDtype / StringDtype → plain Python objects
-            if hasattr(series, 'to_numpy'):
-                arr = series.to_numpy(dtype=object, na_value=np.nan)
-            else:
-                arr = series.values
-
-            non_null = pd.Series(arr).dropna()
-            if len(non_null) == 0:
-                continue  # skip all-null columns
-
-            # Try numeric conversion
-            numeric_series = pd.to_numeric(non_null, errors='coerce')
-            if numeric_series.notna().mean() >= 0.8:
-                # Mostly numeric → treat as numeric
-                if numeric_series.nunique() > 1:  # skip zero-variance
+            non_null = pd.to_numeric(series, errors='coerce').dropna()
+            total_non_null = series.dropna()
+            if len(total_non_null) == 0:
+                continue
+            numeric_ratio = len(non_null) / len(total_non_null)
+            if numeric_ratio >= 0.8:
+                if non_null.nunique() > 1:
                     num_cols.append(col)
             else:
-                # Categorical
-                if non_null.nunique() > 1 and non_null.nunique() <= 50:
+                str_series = series.dropna().astype(str)
+                if 1 < str_series.nunique() <= 50:
                     cat_cols.append(col)
         except Exception:
-            continue  # skip any column that causes trouble
-
+            continue
     return cat_cols, num_cols
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Safe NaN imputation
-# ──────────────────────────────────────────────────────────────────────────────
 def _impute_X(X):
-    """Fill NaN in feature matrix; return (X_clean, col_medians dict)."""
+    """Fill all NaN in feature matrix with column medians. Returns (X_clean, medians_dict)."""
     col_medians = {}
     X = X.copy()
     for col in X.columns:
@@ -85,39 +60,53 @@ def _impute_X(X):
     return X, col_medians
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Safe Churn target encoding
-# ──────────────────────────────────────────────────────────────────────────────
 def _encode_churn(series):
-    """Map any representation of churn to 0/1 int safely."""
+    """Map any representation of churn to 0/1 int. Never raises."""
     def _map(v):
         try:
-            s = str(v).strip().lower()
-            return 1 if s in ('yes', '1', 'true', 'churned', 'churn') else 0
+            return 1 if str(v).strip().lower() in ('yes', '1', 'true', 'churned', 'churn') else 0
         except Exception:
             return 0
     return series.fillna('No').apply(_map).astype(int)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Feature importance extraction (version-safe)
-# ──────────────────────────────────────────────────────────────────────────────
 def _get_importances(model, X_test, y_test, feature_columns):
-    """Return feature importances dict, safe across all sklearn versions."""
+    """
+    Return feature importances as {col: float} dict.
+    Uses permutation_importance for HistGradientBoostingClassifier (which does
+    not reliably expose .feature_importances_ across all sklearn versions).
+    Falls back to zero weights if everything fails.
+    """
+    # For HistGBC: always use permutation importance
+    if 'HistGradient' in type(model).__name__:
+        try:
+            from sklearn.inspection import permutation_importance
+            perm = permutation_importance(
+                model, X_test, y_test, n_repeats=5, random_state=42, n_jobs=-1
+            )
+            return (
+                pd.Series(perm.importances_mean, index=feature_columns)
+                .sort_values(ascending=False)
+                .to_dict()
+            )
+        except Exception:
+            return {col: 0.0 for col in feature_columns}
+
+    # For other models (GBC, RF, etc.): try feature_importances_ first
     try:
-        importances = model.feature_importances_
         return (
-            pd.Series(importances, index=feature_columns)
+            pd.Series(model.feature_importances_, index=feature_columns)
             .sort_values(ascending=False)
             .to_dict()
         )
-    except AttributeError:
+    except Exception:
         pass
+
+    # Final fallback: permutation importance
     try:
         from sklearn.inspection import permutation_importance
         perm = permutation_importance(
-            model, X_test, y_test,
-            n_repeats=5, random_state=42, n_jobs=-1
+            model, X_test, y_test, n_repeats=5, random_state=42, n_jobs=-1
         )
         return (
             pd.Series(perm.importances_mean, index=feature_columns)
@@ -125,46 +114,33 @@ def _get_importances(model, X_test, y_test, feature_columns):
             .to_dict()
         )
     except Exception:
-        pass
-    # Last resort: equal weights
-    return {col: 0.0 for col in feature_columns}
+        return {col: 0.0 for col in feature_columns}
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Main training function
-# ──────────────────────────────────────────────────────────────────────────────
 @st.cache_resource
 def train_churn_model(df):
     """
     Train a churn model on whatever columns exist in df.
-    - Auto-detects features
-    - Handles NaN values natively (HistGBC) + explicit imputation
-    - Falls back to DummyClassifier for degenerate datasets
-    - Never raises an uncaught exception
+    Always returns a dict — never raises. On failure, returns {error: message}.
     """
     try:
-        # ── Guard: need at least a few rows ──────────────────────────────────
         if df is None or len(df) < 5:
             raise ValueError("Dataset too small (need at least 5 rows).")
 
         df = df.copy()
 
-        # ── Ensure Churn column ───────────────────────────────────────────────
         if 'Churn' not in df.columns:
             df['Churn'] = 'No'
 
-        # ── Detect usable feature columns ────────────────────────────────────
         categorical_cols, numeric_cols = _detect_columns(df)
 
         if not categorical_cols and not numeric_cols:
             raise ValueError("No usable feature columns found in dataset.")
 
-        # ── Encode target ─────────────────────────────────────────────────────
         y = _encode_churn(df['Churn'])
 
-        # ── Build categorical features ────────────────────────────────────────
+        # Build categorical features
         if categorical_cols:
-            # Convert any Arrow/string dtypes to plain Python str first
             cat_df = df[categorical_cols].copy()
             for c in categorical_cols:
                 try:
@@ -176,12 +152,11 @@ def train_churn_model(df):
         else:
             X_cat = pd.DataFrame(index=df.index)
 
-        # ── Build numeric features ────────────────────────────────────────────
+        # Build numeric features
         if numeric_cols:
             X_num = df[numeric_cols].copy()
             for nc in numeric_cols:
                 X_num[nc] = pd.to_numeric(X_num[nc], errors='coerce')
-            # Log-transform TotalCharges if present
             if 'TotalCharges' in X_num.columns:
                 X_num['TotalCharges_Log'] = np.log1p(X_num['TotalCharges'].fillna(0))
                 X_num = X_num.drop(columns=['TotalCharges'])
@@ -189,8 +164,6 @@ def train_churn_model(df):
             X_num = pd.DataFrame(index=df.index)
 
         X = pd.concat([X_cat, X_num], axis=1)
-
-        # ── Impute any remaining NaNs ─────────────────────────────────────────
         X, col_medians = _impute_X(X)
         feature_columns = X.columns.tolist()
 
@@ -199,12 +172,11 @@ def train_churn_model(df):
 
         unique_classes = y.nunique()
 
-        # ── Train ─────────────────────────────────────────────────────────────
         if unique_classes < 2 or len(X) < 10:
-            # Degenerate dataset → dummy model
+            # Degenerate dataset — use dummy model
+            split_size = min(0.2, max(1, len(X) // 5) / len(X))
             X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=min(0.2, max(1, len(X) // 5) / len(X)),
-                random_state=42
+                X, y, test_size=split_size, random_state=42
             )
             model = DummyClassifier(strategy="most_frequent")
             model.fit(X_train, y_train)
@@ -217,11 +189,8 @@ def train_churn_model(df):
                 X, y, test_size=0.2, random_state=42, stratify=y
             )
             model = HistGradientBoostingClassifier(
-                max_iter=200,
-                learning_rate=0.05,
-                max_depth=4,
-                min_samples_leaf=20,
-                random_state=42
+                max_iter=200, learning_rate=0.05,
+                max_depth=4, min_samples_leaf=20, random_state=42
             )
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
@@ -247,7 +216,6 @@ def train_churn_model(df):
         }
 
     except Exception as e:
-        # Return a safe fallback model_pack so the UI never crashes
         return {
             "model": None,
             "feature_columns": [],
@@ -262,18 +230,12 @@ def train_churn_model(df):
         }
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Single-row inference
-# ──────────────────────────────────────────────────────────────────────────────
 def predict_single_churn(model_pack, inputs):
-    """
-    Predict churn probability for one customer profile dict.
-    Returns a float in [0, 1]. Never raises.
-    """
+    """Run inference for one customer profile. Returns float in [0, 1]. Never raises."""
     try:
         model = model_pack.get("model")
         if model is None:
-            return 0.5  # model failed to train — return neutral
+            return 0.5
 
         feature_cols = model_pack["feature_columns"]
         cat_cols = model_pack["categorical_cols"]
@@ -284,30 +246,16 @@ def predict_single_churn(model_pack, inputs):
         if not feature_cols:
             return 0.5
 
-        # Build a 1-row subset with only known cat/num cols
-        input_subset = {}
-        for k in cat_cols:
-            if k in inputs:
-                input_subset[k] = inputs[k]
-        for k in num_cols + (['TotalCharges'] if has_total_charges else []):
-            if k in inputs:
-                input_subset[k] = inputs[k]
-
-        raw_df = pd.DataFrame([input_subset])
-
-        # One-hot encode categoricals present in the input
-        present_cat = [c for c in cat_cols if c in raw_df.columns]
+        # One-hot encode categoricals
+        present_cat = [c for c in cat_cols if c in inputs]
         if present_cat:
-            for c in present_cat:
-                try:
-                    raw_df[c] = raw_df[c].astype(str)
-                except Exception:
-                    raw_df[c] = 'Unknown'
+            cat_input = {c: str(inputs[c]) for c in present_cat}
+            raw_df = pd.DataFrame([cat_input])
             encoded_cat = pd.get_dummies(raw_df[present_cat], dtype=float)
         else:
-            encoded_cat = pd.DataFrame(index=raw_df.index)
+            encoded_cat = pd.DataFrame()
 
-        # Start from zero-filled template
+        # Start from median-filled template
         pred_dict = {col: col_medians.get(col, 0.0) for col in feature_cols}
 
         # Fill one-hot values
@@ -347,46 +295,30 @@ def predict_single_churn(model_pack, inputs):
         return float(np.clip(probas[0, 1], 0.0, 1.0))
 
     except Exception:
-        return 0.5  # neutral fallback — never crash the UI
+        return 0.5
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Recommendation engine
-# ──────────────────────────────────────────────────────────────────────────────
 def get_recommendation_plan(inputs, churn_prob):
     """Return list of recommendation strings. Never raises."""
     try:
-        recommendations = []
         if churn_prob < 0.3:
             return [
                 "🟢 **Stable Account**: Maintain regular service quality.",
                 "💡 **Upsell opportunity**: Suggest adding value-added features like StreamingTV."
             ]
-
+        recommendations = []
         if inputs.get('Contract') == 'Month-to-month':
-            recommendations.append(
-                "📅 **Upgrade Contract**: Move to a **1-Year or 2-Year Contract** to lock in loyalty.")
-
+            recommendations.append("📅 **Upgrade Contract**: Move to a **1-Year or 2-Year Contract** to lock in loyalty.")
         if inputs.get('InternetService') == 'Fiber optic' and inputs.get('TechSupport') == 'No':
-            recommendations.append(
-                "🛡️ **Add Tech Support**: Fiber optic accounts without support are high risk. Offer a 3-month free trial.")
-
+            recommendations.append("🛡️ **Add Tech Support**: Fiber optic accounts without support are high risk. Offer a 3-month free trial.")
         if inputs.get('OnlineSecurity') == 'No':
-            recommendations.append(
-                "🔒 **Add Online Security**: Bundle security features to improve account stickiness.")
-
+            recommendations.append("🔒 **Add Online Security**: Bundle security features to improve account stickiness.")
         if inputs.get('PaymentMethod') == 'Electronic check':
-            recommendations.append(
-                "💳 **Automate Billing**: Encourage transition to **Auto-Pay (Credit Card or Bank Transfer)**.")
-
+            recommendations.append("💳 **Automate Billing**: Encourage transition to **Auto-Pay (Credit Card or Bank Transfer)**.")
         if inputs.get('tenure', 12) < 6:
-            recommendations.append(
-                "🎁 **Onboarding Call**: Customer is in onboarding phase (< 6 months). Trigger a customer success check-in.")
-
+            recommendations.append("🎁 **Onboarding Call**: Customer is in onboarding phase (< 6 months). Trigger a customer success check-in.")
         if not recommendations:
-            recommendations.append(
-                "💸 **Loyalty Check**: Reach out with a discount offer to secure their retention.")
-
+            recommendations.append("💸 **Loyalty Check**: Reach out with a discount offer to secure their retention.")
         return recommendations
     except Exception:
         return ["💡 **Review this account** for potential retention actions."]
