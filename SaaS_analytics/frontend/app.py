@@ -229,19 +229,24 @@ else:
             st.rerun()
 
     # Resolve active datasets & absent elements list
-    active_sales_df = df_sales
+    active_sales_df    = df_sales
     active_sales_absent = []
-    active_churn_df = df_churn
+    active_churn_df    = df_churn
     active_churn_absent = []
-    
-    if dataset_source == "Upload Custom CSV 📂":
-        if st.session_state.custom_sales_df is not None and ("Executive Sales" in workspace or "Retention Cohort" in workspace):
-            active_sales_df = st.session_state.custom_sales_df
-            active_sales_absent = st.session_state.custom_sales_absent
-        if st.session_state.custom_churn_df is not None and "Churn Predictor" in workspace:
-            active_churn_df = st.session_state.custom_churn_df
-            active_churn_absent = st.session_state.custom_churn_absent
-            
+
+    try:
+        if dataset_source == "Upload Custom CSV 📂":
+            if st.session_state.custom_sales_df is not None and (
+                "Executive Sales" in workspace or "Retention Cohort" in workspace
+            ):
+                active_sales_df     = st.session_state.custom_sales_df
+                active_sales_absent = st.session_state.get("custom_sales_absent", [])
+            if st.session_state.custom_churn_df is not None and "Churn Predictor" in workspace:
+                active_churn_df     = st.session_state.custom_churn_df
+                active_churn_absent = st.session_state.get("custom_churn_absent", [])
+    except Exception as e:
+        st.warning(f"Dataset resolution issue: {e}")
+
     # Inject absent lists globally so components can access them
     st.session_state.active_sales_absent = active_sales_absent
     st.session_state.active_churn_absent = active_churn_absent
@@ -252,20 +257,29 @@ else:
             st.markdown('<h1 class="platform-title" style="text-align: left; font-size: 2.2rem; margin-bottom: 5px;">Executive Sales Analytics Workspace</h1>', unsafe_allow_html=True)
             st.info("📂 Please upload your SaaS Sales Transaction CSV in the sidebar panel to view your results!")
         else:
-            render_sales_dashboard(active_sales_df)
-        
+            try:
+                render_sales_dashboard(active_sales_df)
+            except Exception as e:
+                st.error(f"⚠️ Sales Dashboard encountered an error: {e}")
+
     elif "Retention Cohort" in workspace:
         if dataset_source == "Upload Custom CSV 📂" and st.session_state.custom_sales_df is None:
             st.markdown('<h1 class="platform-title" style="text-align: left; font-size: 2.2rem; margin-bottom: 5px;">Retention Cohort Matrix</h1>', unsafe_allow_html=True)
             st.info("📂 Please upload your SaaS Sales Transaction CSV in the sidebar panel to view your results!")
         else:
-            render_retention_cohort(active_sales_df)
-        
+            try:
+                render_retention_cohort(active_sales_df)
+            except Exception as e:
+                st.error(f"⚠️ Retention Cohort encountered an error: {e}")
+
     elif "Churn Predictor" in workspace:
         if dataset_source == "Upload Custom CSV 📂" and st.session_state.custom_churn_df is None:
             st.markdown('<h1 class="platform-title" style="text-align: left; font-size: 2.2rem; margin-bottom: 5px;">Customer Churn Risk Analysis</h1>', unsafe_allow_html=True)
             st.info("📂 Please upload your Customer Churn CSV in the sidebar panel to run model predictions!")
         else:
-            render_churn_predictor(active_churn_df)
-        
+            try:
+                render_churn_predictor(active_churn_df)
+            except Exception as e:
+                st.error(f"⚠️ Churn Predictor encountered an error: {e}")
+
     pass

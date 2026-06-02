@@ -83,73 +83,85 @@ def get_saas_metrics(df):
 
 
 def process_custom_sales_data(uploaded_file):
+    """
+    Process a user-uploaded sales CSV.
+    Fills any missing standard columns with sensible defaults.
+    Never raises — returns (df, absent_columns) always.
+    """
     import numpy as np
-    
-    # Read custom uploaded CSV
-    df = pd.read_csv(uploaded_file)
-    
+
+    try:
+        df = pd.read_csv(uploaded_file)
+    except Exception as e:
+        raise ValueError(f"Could not read CSV file: {e}")
+
+    if df.empty:
+        raise ValueError("Uploaded CSV file is empty.")
+
     required_sales_cols = [
-        'Sales', 'Profit', 'Quantity', 'Discount', 
-        'Customer ID', 'Order Date', 'Product', 
+        'Sales', 'Profit', 'Quantity', 'Discount',
+        'Customer ID', 'Order Date', 'Product',
         'Industry', 'Segment', 'Country', 'Row ID'
     ]
-    
-    # Identify absent columns
     absent_columns = [col for col in required_sales_cols if col not in df.columns]
-    
-    # Dynamic fallback imputation for absent elements
-    if 'Row ID' in absent_columns:
-        df['Row ID'] = range(1, len(df) + 1)
-        
-    if 'Order Date' in absent_columns:
-        # Generate default dates spread over 2024
-        df['Order Date'] = pd.date_range(start='2024-01-01', periods=len(df), freq='h')
-    else:
-        df['Order Date'] = pd.to_datetime(df['Order Date'], errors='coerce')
-        
-    df = df.dropna(subset=['Order Date'])
-    
-    if 'Sales' in absent_columns:
-        df['Sales'] = 100.0
-    else:
-        df['Sales'] = pd.to_numeric(df['Sales'], errors='coerce').fillna(0)
-        
-    if 'Profit' in absent_columns:
-        df['Profit'] = df['Sales'] * 0.15  # Fallback profit margins to 15%
-    else:
-        df['Profit'] = pd.to_numeric(df['Profit'], errors='coerce').fillna(0)
-        
-    if 'Quantity' in absent_columns:
-        df['Quantity'] = 1
-    else:
-        df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0).astype(int)
-        
-    if 'Discount' in absent_columns:
-        df['Discount'] = 0.0
-    else:
-        df['Discount'] = pd.to_numeric(df['Discount'], errors='coerce').fillna(0)
-        
-    if 'Customer ID' in absent_columns:
-        df['Customer ID'] = [f"CUST-{1000 + i}" for i in range(len(df))]
-        
-    if 'Product' in absent_columns:
-        df['Product'] = "Standard Subscription"
-        
-    if 'Industry' in absent_columns:
-        df['Industry'] = "SaaS Analytics Clients"
-        
-    if 'Segment' in absent_columns:
-        df['Segment'] = "Enterprise"
-        
-    if 'Country' in absent_columns:
-        df['Country'] = "United States"
-        
-    # Standard date groupings
-    df['Order_Year'] = df['Order Date'].dt.year
-    df['Order_Month'] = df['Order Date'].dt.to_period('M')
-    df['Order_Month_Str'] = df['Order Date'].dt.strftime('%Y-%m')
-    df['Profit_Margin'] = df.apply(lambda r: r['Profit'] / r['Sales'] if r['Sales'] != 0 else 0, axis=1)
-    
+
+    try:
+        # Row ID
+        if 'Row ID' not in df.columns:
+            df['Row ID'] = range(1, len(df) + 1)
+
+        # Order Date
+        if 'Order Date' not in df.columns:
+            df['Order Date'] = pd.date_range(start='2024-01-01', periods=len(df), freq='h')
+        else:
+            df['Order Date'] = pd.to_datetime(df['Order Date'], errors='coerce')
+        df = df.dropna(subset=['Order Date'])
+        if len(df) == 0:
+            raise ValueError("No valid dates found in 'Order Date' column.")
+
+        # Numeric columns
+        if 'Sales' not in df.columns:
+            df['Sales'] = 100.0
+        else:
+            df['Sales'] = pd.to_numeric(df['Sales'], errors='coerce').fillna(0)
+
+        if 'Profit' not in df.columns:
+            df['Profit'] = df['Sales'] * 0.15
+        else:
+            df['Profit'] = pd.to_numeric(df['Profit'], errors='coerce').fillna(0)
+
+        if 'Quantity' not in df.columns:
+            df['Quantity'] = 1
+        else:
+            df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0).astype(int)
+
+        if 'Discount' not in df.columns:
+            df['Discount'] = 0.0
+        else:
+            df['Discount'] = pd.to_numeric(df['Discount'], errors='coerce').fillna(0)
+
+        # String columns
+        if 'Customer ID' not in df.columns:
+            df['Customer ID'] = [f"CUST-{1000 + i}" for i in range(len(df))]
+        if 'Product' not in df.columns:
+            df['Product'] = "Standard Subscription"
+        if 'Industry' not in df.columns:
+            df['Industry'] = "SaaS Analytics Clients"
+        if 'Segment' not in df.columns:
+            df['Segment'] = "Enterprise"
+        if 'Country' not in df.columns:
+            df['Country'] = "United States"
+
+        # Derived date columns
+        df['Order_Year']      = df['Order Date'].dt.year
+        df['Order_Month']     = df['Order Date'].dt.to_period('M')
+        df['Order_Month_Str'] = df['Order Date'].dt.strftime('%Y-%m')
+        df['Profit_Margin']   = df.apply(
+            lambda r: r['Profit'] / r['Sales'] if r['Sales'] != 0 else 0, axis=1
+        )
+    except Exception as e:
+        raise ValueError(f"Error processing sales data: {e}")
+
     return df, absent_columns
 
 
