@@ -4,3 +4,11 @@ numpy
 plotly
 scikit-learn
 requests
+pyjwt
+bcrypt
+SQLAlchemy
+pydantic
+jinja2
+tenacity
+authlib
+streamlit-oauth
