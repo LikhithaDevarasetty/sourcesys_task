@@ -299,7 +299,7 @@ def _render_signup_view():
                                 email_clean = email.strip().lower()
                                 display_name = google_su_name.strip()
                                 
-                                from utils.auth_db import load_users, register_user
+                                from utils.auth_db import load_users
                                 users = load_users()
                                 smtp_conf = st.session_state.get("smtp_settings", {"demo_mode": True})
                                 
