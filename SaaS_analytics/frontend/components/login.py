@@ -17,7 +17,13 @@ def get_google_oauth_secrets():
     
     # 2. Try local git-ignored JSON file
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(current_dir) if os.path.basename(current_dir) == "frontend" else current_dir
+    if os.path.basename(current_dir) == "components":
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+    elif os.path.basename(current_dir) == "frontend":
+        project_root = os.path.dirname(current_dir)
+    else:
+        project_root = current_dir
+        
     creds_path = os.path.join(project_root, "backend", "google_creds.json")
     
     if os.path.exists(creds_path):
