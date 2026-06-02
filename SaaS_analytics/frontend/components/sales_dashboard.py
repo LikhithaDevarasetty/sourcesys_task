@@ -148,6 +148,9 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
+        if 'Product' in absent_cols:
+            st.info("💡 Note: Product data was absent; grouping entire sales volume under default category.")
+            
         prod_data = df.groupby('Product').agg({'Sales': 'sum', 'Profit': 'sum'}).reset_index()
         prod_data['Margin_Pct'] = (prod_data['Profit'] / prod_data['Sales'] * 100).round(1)
         prod_data = prod_data.sort_values('Sales', ascending=True)
@@ -189,6 +192,9 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
+        if 'Industry' in absent_cols or 'Segment' in absent_cols:
+            st.info("💡 Note: Industry/Segment categories were absent; grouping contribution under defaults.")
+            
         ind_seg = df.groupby(['Industry', 'Segment'])['Sales'].sum().reset_index()
         
         # Custom premium color scheme
@@ -232,6 +238,9 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
+        if 'Country' in absent_cols:
+            st.info("💡 Note: Location data was absent; plotting full revenue contribution globally.")
+            
         geo_data = df.groupby('Country')['Sales'].sum().reset_index()
         geo_data = geo_data.sort_values('Sales', ascending=True).tail(10)
         
@@ -262,6 +271,9 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
+        if 'Discount' in absent_cols:
+            st.info("💡 Note: Discount rates were absent; visualizing baseline profit performance.")
+            
         # We bucket discount levels into ranges
         disc_impact = df.groupby('Discount').agg({
             'Sales': 'sum',

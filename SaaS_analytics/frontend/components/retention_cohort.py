@@ -32,6 +32,9 @@ def render_retention_cohort(df):
         )
     
     # 1. Select the date range to optimize matrix sizing (limit to most active 12-month period for cleaner UI)
+    if 'Order Date' in absent_cols or 'Customer ID' in absent_cols:
+        st.info("💡 Note: Cohort transaction tracking is simulated/simplified because 'Order Date' or 'Customer ID' columns were absent in your dataset.")
+        
     st.markdown(
         """
         <div class="glass-card" style="margin-bottom: 20px;">
