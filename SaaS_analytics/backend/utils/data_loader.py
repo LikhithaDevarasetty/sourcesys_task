@@ -154,81 +154,67 @@ def process_custom_sales_data(uploaded_file):
 
 
 def process_custom_churn_data(uploaded_file):
+    """
+    Process a user-uploaded churn CSV.
+    - Only cleans / normalises columns that actually exist in the file.
+    - Does NOT inject fake Telco columns — the model auto-detects available features.
+    - Ensures 'Churn' target column exists (defaults to 'No' if absent).
+    """
     import numpy as np
-    
-    # Read custom uploaded CSV
+
     df = pd.read_csv(uploaded_file)
-    
-    categorical_cols = [
-        'gender', 'SeniorCitizen', 'Partner', 'Dependents', 
-        'PhoneService', 'MultipleLines', 'InternetService', 
-        'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
-        'TechSupport', 'StreamingTV', 'StreamingMovies', 
-        'Contract', 'PaperlessBilling', 'PaymentMethod'
+
+    # Columns that existed in the original Telco reference set (for absent-tracking only)
+    reference_cols = [
+        'gender', 'SeniorCitizen', 'Partner', 'Dependents',
+        'PhoneService', 'MultipleLines', 'InternetService',
+        'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
+        'TechSupport', 'StreamingTV', 'StreamingMovies',
+        'Contract', 'PaperlessBilling', 'PaymentMethod',
+        'tenure', 'MonthlyCharges', 'TotalCharges', 'Churn'
     ]
-    numeric_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
-    
-    required_cols = categorical_cols + numeric_cols + ['Churn']
-    
-    # Identify absent columns
-    absent_columns = [col for col in required_cols if col not in df.columns]
-    
-    # Dynamic fallback imputation for absent elements
-    if 'Churn' in absent_columns:
+    absent_columns = [col for col in reference_cols if col not in df.columns]
+
+    # ── Mandatory: ensure a Churn column exists ──────────────────────────────
+    if 'Churn' not in df.columns:
         df['Churn'] = 'No'
-        
-    if 'tenure' in absent_columns:
-        df['tenure'] = 12
-    else:
+
+    # ── Clean numeric columns only if they are present ───────────────────────
+    if 'tenure' in df.columns:
         df['tenure'] = pd.to_numeric(df['tenure'], errors='coerce').fillna(12).astype(int)
-        
-    if 'MonthlyCharges' in absent_columns:
-        df['MonthlyCharges'] = 50.0
-    else:
+
+    if 'MonthlyCharges' in df.columns:
         df['MonthlyCharges'] = pd.to_numeric(df['MonthlyCharges'], errors='coerce').fillna(50.0)
-        
-    if 'TotalCharges' in absent_columns:
-        df['TotalCharges'] = df['tenure'] * df['MonthlyCharges']
-    else:
+
+    if 'TotalCharges' in df.columns:
         df['TotalCharges'] = df['TotalCharges'].replace(' ', '0')
         df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce').fillna(0)
-        
-    # Impute missing categorical features
-    for col in categorical_cols:
-        if col in absent_columns:
-            if col == 'SeniorCitizen':
-                df['SeniorCitizen'] = 'No'
-            elif col == 'gender':
-                df['gender'] = 'Female'
-            elif col == 'Contract':
-                df['Contract'] = 'Month-to-month'
-            elif col == 'InternetService':
-                df['InternetService'] = 'Fiber optic'
-            elif col == 'PaymentMethod':
-                df['PaymentMethod'] = 'Electronic check'
-            else:
-                df[col] = 'No'
-        else:
-            if col == 'SeniorCitizen':
-                df['SeniorCitizen'] = df['SeniorCitizen'].map({1: 'Yes', 0: 'No', '1': 'Yes', '0': 'No'}).fillna(df['SeniorCitizen'])
-                
-    # Standard normalizations
-    service_cols = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies']
+
+    # ── Normalise SeniorCitizen encoding if column exists ────────────────────
+    if 'SeniorCitizen' in df.columns:
+        df['SeniorCitizen'] = df['SeniorCitizen'].map(
+            {1: 'Yes', 0: 'No', '1': 'Yes', '0': 'No'}
+        ).fillna(df['SeniorCitizen'])
+
+    # ── Normalise "No internet service" / "No phone service" if cols exist ───
+    service_cols = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
+                    'TechSupport', 'StreamingTV', 'StreamingMovies']
     for col in service_cols:
         if col in df.columns:
             df[col] = df[col].replace('No internet service', 'No')
-            
+
     if 'MultipleLines' in df.columns:
         df['MultipleLines'] = df['MultipleLines'].replace('No phone service', 'No')
-        
-    def group_tenure(t):
-        if t <= 12: return '0-1 Year'
-        elif t <= 24: return '1-2 Years'
-        elif t <= 36: return '2-3 Years'
-        elif t <= 48: return '3-4 Years'
-        elif t <= 60: return '4-5 Years'
-        else: return '5+ Years'
-            
-    df['TenureGroup'] = df['tenure'].apply(group_tenure)
-    
+
+    # ── Add TenureGroup helper if tenure is available ─────────────────────────
+    if 'tenure' in df.columns:
+        def group_tenure(t):
+            if t <= 12:   return '0-1 Year'
+            elif t <= 24: return '1-2 Years'
+            elif t <= 36: return '2-3 Years'
+            elif t <= 48: return '3-4 Years'
+            elif t <= 60: return '4-5 Years'
+            else:         return '5+ Years'
+        df['TenureGroup'] = df['tenure'].apply(group_tenure)
+
     return df, absent_columns
