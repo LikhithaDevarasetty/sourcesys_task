@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.dummy import DummyClassifier
 
@@ -73,36 +73,21 @@ def _encode_churn(series):
 def _get_importances(model, X_test, y_test, feature_columns):
     """
     Return feature importances as {col: float} dict.
-    Uses permutation_importance for HistGradientBoostingClassifier (which does
-    not reliably expose .feature_importances_ across all sklearn versions).
-    Falls back to zero weights if everything fails.
+    Uses native feature_importances_ if available (RF, GBC, etc.).
+    Falls back to permutation_importance, then zero weights if everything fails.
     """
-    # For HistGBC: always use permutation importance
-    if 'HistGradient' in type(model).__name__:
-        try:
-            from sklearn.inspection import permutation_importance
-            perm = permutation_importance(
-                model, X_test, y_test, n_repeats=5, random_state=42, n_jobs=-1
-            )
+    # Try native feature importances first (extremely fast, zero overhead)
+    try:
+        if hasattr(model, 'feature_importances_'):
             return (
-                pd.Series(perm.importances_mean, index=feature_columns)
+                pd.Series(model.feature_importances_, index=feature_columns)
                 .sort_values(ascending=False)
                 .to_dict()
             )
-        except Exception:
-            return {col: 0.0 for col in feature_columns}
-
-    # For other models (GBC, RF, etc.): try feature_importances_ first
-    try:
-        return (
-            pd.Series(model.feature_importances_, index=feature_columns)
-            .sort_values(ascending=False)
-            .to_dict()
-        )
     except Exception:
         pass
 
-    # Final fallback: permutation importance
+    # Try permutation importance as a fallback
     try:
         from sklearn.inspection import permutation_importance
         perm = permutation_importance(
@@ -118,7 +103,7 @@ def _get_importances(model, X_test, y_test, feature_columns):
 
 
 @st.cache_resource
-def train_churn_model(df):
+def train_churn_model(df, _version=5):
     """
     Train a churn model on whatever columns exist in df.
     Always returns a dict — never raises. On failure, returns {error: message}.
@@ -188,9 +173,9 @@ def train_churn_model(df):
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.2, random_state=42, stratify=y
             )
-            model = HistGradientBoostingClassifier(
-                max_iter=200, learning_rate=0.05,
-                max_depth=4, min_samples_leaf=20, random_state=42
+            model = RandomForestClassifier(
+                n_estimators=100, max_depth=8,
+                min_samples_leaf=5, random_state=42, n_jobs=-1
             )
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)

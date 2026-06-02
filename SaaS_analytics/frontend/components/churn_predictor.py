@@ -164,7 +164,7 @@ def render_churn_predictor(df):
 
     # 1. Train (always returns a dict, never raises)
     with st.spinner("Loading Churn Prediction Model..."):
-        model_pack = train_churn_model(df)
+        model_pack = train_churn_model(df, _version=5)
 
     # Show training error message if model failed
     if model_pack.get("error"):
