@@ -21,20 +21,6 @@ def render_sales_dashboard(df):
     
     st.markdown('<h1 class="platform-title" style="text-align: left; font-size: 2.2rem; margin-bottom: 5px;">Executive Sales Analytics Workspace</h1>', unsafe_allow_html=True)
     st.markdown(f'<p class="platform-subtitle" style="text-align: left; margin-bottom: 25px;">Real-time business performance metrics updated through {metrics["latest_month"]}</p>', unsafe_allow_html=True)
-    
-    # Render Absent Columns Warning Banner if any are found
-    absent_cols = st.session_state.get("active_sales_absent", [])
-    if absent_cols:
-        cols_formatted = ", ".join([f"<code>{col}</code>" for col in absent_cols])
-        st.markdown(
-            f"""
-            <div class="notification-banner notification-info" style="margin-bottom: 20px; border-left: 5px solid #fdcb6e;">
-                ⚠️ <strong>Custom Dataset Notice</strong>: The following elements are absent in your uploaded dataset and have been automatically resolved with defaults: {cols_formatted}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
     # 2. Executive KPI Cards Grid (using Streamlit columns)
     col1, col2, col3, col4 = st.columns(4)
     
@@ -148,9 +134,6 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
-        if 'Product' in absent_cols:
-            st.info("💡 Note: Product data was absent; grouping entire sales volume under default category.")
-            
         prod_data = df.groupby('Product').agg({'Sales': 'sum', 'Profit': 'sum'}).reset_index()
         prod_data['Margin_Pct'] = (prod_data['Profit'] / prod_data['Sales'] * 100).round(1)
         prod_data = prod_data.sort_values('Sales', ascending=True)
@@ -192,9 +175,6 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
-        if 'Industry' in absent_cols or 'Segment' in absent_cols:
-            st.info("💡 Note: Industry/Segment categories were absent; grouping contribution under defaults.")
-            
         ind_seg = df.groupby(['Industry', 'Segment'])['Sales'].sum().reset_index()
         
         # Custom premium color scheme
@@ -238,9 +218,6 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
-        if 'Country' in absent_cols:
-            st.info("💡 Note: Location data was absent; plotting full revenue contribution globally.")
-            
         geo_data = df.groupby('Country')['Sales'].sum().reset_index()
         geo_data = geo_data.sort_values('Sales', ascending=True).tail(10)
         
@@ -271,9 +248,6 @@ def render_sales_dashboard(df):
             unsafe_allow_html=True
         )
         
-        if 'Discount' in absent_cols:
-            st.info("💡 Note: Discount rates were absent; visualizing baseline profit performance.")
-            
         # We bucket discount levels into ranges
         disc_impact = df.groupby('Discount').agg({
             'Sales': 'sum',
