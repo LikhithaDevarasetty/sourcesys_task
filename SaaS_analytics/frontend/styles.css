@@ -339,3 +339,55 @@ section[data-testid="stSidebar"] div.stRadio label[data-checked="true"] {
 a.class-header-anchor, a.header-anchor, .stMarkdown a.header-anchor {
     display: none !important;
 }
+
+/* Premium login container and border wrapper glass-card styles */
+.login-container div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.login-container div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(108, 92, 231, 0.2) !important;
+    box-shadow: 0 12px 40px 0 rgba(108, 92, 231, 0.15) !important;
+    transform: translateY(-4px) !important;
+}
+
+/* Center horizontal block columns inside login container for Google Sign-In */
+.login-container div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Ensure the streamlit-oauth authorization button has custom styles and is centered */
+.login-container a[href*="accounts.google.com"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    color: #434343 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    width: fit-content !important;
+}
+
+.login-container a[href*="accounts.google.com"]:hover {
+    background: #f8f9fa !important;
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.25) !important;
+    transform: translateY(-2px) !important;
+}
