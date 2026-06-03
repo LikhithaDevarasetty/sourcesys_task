@@ -55,6 +55,31 @@ input, select, textarea, div[data-baseweb="select"] div {
     color: #e0e0ff !important;
 }
 
+/* Adjust colors specifically for system Light Mode theme to ensure black text on white backgrounds */
+@media (prefers-color-scheme: light) {
+    /* Inputs, select boxes, and textareas (which default to white backgrounds) */
+    input, select, textarea, div[data-baseweb="select"] div, div[data-baseweb="select"] span {
+        color: #111111 !important;
+    }
+    
+    /* Input placeholders */
+    input::placeholder, textarea::placeholder {
+        color: #636e72 !important;
+    }
+    
+    /* File uploader dropzone text, file list, upload labels, and upload buttons */
+    [data-testid="stFileUploaderDropzone"] span,
+    [data-testid="stFileUploaderDropzone"] p,
+    [data-testid="stFileUploaderDropzone"] button,
+    [data-testid="stFileUploaderDropzone"] button span,
+    [data-testid="stFileUploaderDropzone"] button p,
+    [data-testid="stFileUploaderDropzone"] small,
+    [data-testid="stFileUploaderDropzone"] label,
+    div[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+        color: #111111 !important;
+    }
+}
+
 /* Force standard text inside sidebar to be readable */
 section[data-testid="stSidebar"] small {
     color: #a0a0c0 !important;
