@@ -96,6 +96,31 @@ div[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
     color: var(--text-color) !important;
 }
 
+/* Override rules specifically for system Light Mode to ensure black text inside all widgets */
+@media (prefers-color-scheme: light) {
+    /* Credentials, text fields, and select box display text */
+    input, textarea, div[data-baseweb="select"] div, div[data-baseweb="select"] span, [data-baseweb="input"] input {
+        color: #111111 !important;
+    }
+    
+    /* Input field placeholders */
+    input::placeholder, textarea::placeholder {
+        color: #636e72 !important;
+    }
+    
+    /* File uploader uploader button, Dropzone info text, and file options */
+    [data-testid="stFileUploaderDropzone"] span,
+    [data-testid="stFileUploaderDropzone"] p,
+    [data-testid="stFileUploaderDropzone"] button,
+    [data-testid="stFileUploaderDropzone"] button span,
+    [data-testid="stFileUploaderDropzone"] button p,
+    [data-testid="stFileUploaderDropzone"] small,
+    [data-testid="stFileUploaderDropzone"] label,
+    div[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+        color: #111111 !important;
+    }
+}
+
 /* Force standard text inside sidebar to be readable */
 section[data-testid="stSidebar"] small {
     color: #a0a0c0 !important;
@@ -309,6 +334,21 @@ div[role="option"]:hover,
 ul[role="listbox"] li:hover {
     background-color: var(--secondary-background-color) !important;
     color: var(--text-color) !important;
+}
+
+/* Enforce black text inside popover list options specifically for Light Mode */
+@media (prefers-color-scheme: light) {
+    div[data-baseweb="popover"] li,
+    div[role="listbox"] li,
+    div[role="listbox"] div,
+    div[role="option"],
+    div[role="option"] span,
+    div[role="option"] div,
+    ul[role="listbox"] li,
+    ul[role="listbox"] li div,
+    ul[role="listbox"] li span {
+        color: #1a1a1a !important;
+    }
 }
 
 /* Divider styling */
