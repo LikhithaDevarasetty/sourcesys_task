@@ -50,34 +50,34 @@ h1, h2, h3, h4, h5, h6, p, span, label, li, ul, ol, small, th, td, [data-testid=
     color: #e0e0ff !important;
 }
 
-/* Force inputs, selectboxes, and textareas to have white backgrounds with black text for maximum readability */
+/* Specific text inputs, textareas, and select box dropdown values - adapt dynamically using variables */
 input, select, textarea, div[data-baseweb="select"] div, div[data-baseweb="select"] span, [data-baseweb="input"] input {
-    color: #111111 !important;
+    color: var(--text-color) !important;
 }
 
 input::placeholder, textarea::placeholder {
     color: #7f8c8d !important;
 }
 
-/* Styling for text inputs, number inputs, selectbox wrapper headers to be light gray/white */
+/* Styling for text inputs, number inputs, selectbox wrapper headers to adapt to theme colors */
 div.stTextInput > div > div > input,
 div.stNumberInput > div > div > input,
 div[data-baseweb="select"] {
-    background-color: #ffffff !important;
-    border: 1px solid #ced4da !important;
+    background-color: var(--secondary-background-color) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 8px !important;
-    color: #111111 !important;
+    color: var(--text-color) !important;
 }
 
-/* File uploader dropzone and text styling */
+/* File uploader dropzone and text styling dynamically matched to theme */
 div[data-testid="stFileUploaderDropzone"],
 div[data-testid="stFileUploader"] {
-    background-color: #ffffff !important;
-    border: 1px dashed #ced4da !important;
+    background-color: var(--secondary-background-color) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
     border-radius: 12px !important;
 }
 
-/* Ensure all uploader button labels, descriptions, and helper text are black */
+/* Ensure all uploader button labels, descriptions, and helper text match the theme */
 [data-testid="stFileUploaderDropzone"] span,
 [data-testid="stFileUploaderDropzone"] p,
 [data-testid="stFileUploaderDropzone"] button,
@@ -86,14 +86,14 @@ div[data-testid="stFileUploader"] {
 [data-testid="stFileUploaderDropzone"] small,
 [data-testid="stFileUploaderDropzone"] label,
 div[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
-    color: #111111 !important;
+    color: var(--text-color) !important;
 }
 
 /* Style the file uploader upload button itself */
 [data-testid="stFileUploaderDropzone"] button {
-    background-color: #f1f2f6 !important;
-    border: 1px solid #ced4da !important;
-    color: #111111 !important;
+    background-color: var(--background-color) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-color) !important;
 }
 
 /* Force standard text inside sidebar to be readable */
@@ -281,7 +281,7 @@ div.stNumberInput > div > div > input:focus {
     box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2) !important;
 }
 
-/* Ensure that popups, dropdown lists, and options have dark text on their light/white background */
+/* Ensure that popups, dropdown lists, and options adapt dynamically using theme colors */
 div[data-baseweb="popover"] li,
 div[role="listbox"] li,
 div[role="listbox"] div,
@@ -291,7 +291,15 @@ div[role="option"] div,
 ul[role="listbox"] li,
 ul[role="listbox"] li div,
 ul[role="listbox"] li span {
-    color: #1a1a1a !important;
+    color: var(--text-color) !important;
+}
+
+/* Ensure the popover list container background matches the theme */
+div[data-baseweb="menu"],
+div[data-baseweb="popover"],
+ul[role="listbox"] {
+    background-color: var(--background-color) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Make sure hovered options inside dropdown popups look beautiful and readable */
@@ -299,8 +307,8 @@ div[data-baseweb="popover"] li:hover,
 div[role="listbox"] li:hover,
 div[role="option"]:hover,
 ul[role="listbox"] li:hover {
-    background-color: rgba(108, 92, 231, 0.1) !important;
-    color: #6c5ce7 !important;
+    background-color: var(--secondary-background-color) !important;
+    color: var(--text-color) !important;
 }
 
 /* Divider styling */
