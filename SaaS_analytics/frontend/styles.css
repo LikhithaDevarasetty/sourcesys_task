@@ -306,6 +306,20 @@ div.stTextInput > div > div > input:focus {
 section[data-testid="stSidebar"] {
     background-color: #080612 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #e0e0ff !important;
+}
+
+/* Force all normal sidebar markdown text, labels, and helper text to remain light/readable */
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] label p,
+section[data-testid="stSidebar"] label span,
+section[data-testid="stSidebar"] .metric-label,
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+section[data-testid="stSidebar"] [data-testid="stFileUploaderFileName"],
+section[data-testid="stSidebar"] [data-testid="stFileUploadDropzoneInstructions"] span,
+section[data-testid="stSidebar"] [data-testid="stFileUploadDropzoneInstructions"] p,
+section[data-testid="stSidebar"] div.stRadio label p {
+    color: #e0e0ff !important;
 }
 
 section[data-testid="stSidebar"] div.stRadio > div {
@@ -324,15 +338,27 @@ section[data-testid="stSidebar"] div.stRadio label {
 
 section[data-testid="stSidebar"] div.stRadio label:hover {
     background-color: rgba(108, 92, 231, 0.05) !important;
-    color: #e0e0ff !important;
     border-color: rgba(108, 92, 231, 0.2) !important;
+}
+
+section[data-testid="stSidebar"] div.stRadio label:hover p {
+    color: #e0e0ff !important;
 }
 
 section[data-testid="stSidebar"] div.stRadio label[data-checked="true"] {
     background-color: rgba(108, 92, 231, 0.15) !important;
-    color: #ffffff !important;
     border-color: rgba(108, 92, 231, 0.4) !important;
     font-weight: 600 !important;
+}
+
+section[data-testid="stSidebar"] div.stRadio label[data-checked="true"] p {
+    color: #ffffff !important;
+}
+
+section[data-testid="stSidebar"] div.stButton > button,
+section[data-testid="stSidebar"] div.stButton > button p,
+section[data-testid="stSidebar"] div.stButton > button span {
+    color: #ffffff !important;
 }
 
 /* Hide standard Streamlit header hover link icons */
