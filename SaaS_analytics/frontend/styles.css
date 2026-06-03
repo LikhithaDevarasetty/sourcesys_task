@@ -233,20 +233,50 @@ div.stButton > button:active {
     transform: translateY(0px) !important;
 }
 
-/* TextInput Styling overrides to look like glassmorphism inputs */
-div.stTextInput > div > div > input {
+/* TextInput, NumberInput, Selectbox, Multiselect, and FileUploader background overrides to keep them dark */
+div.stTextInput > div > div > input,
+div.stNumberInput > div > div > input,
+div[data-baseweb="select"],
+div[data-testid="stFileUploader"] {
     background-color: rgba(255, 255, 255, 0.03) !important;
     color: #e0e0ff !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 8px !important;
-    padding: 10px 14px !important;
-    transition: all 0.2s ease !important;
 }
 
-div.stTextInput > div > div > input:focus {
+div.stTextInput > div > div > input:focus,
+div.stNumberInput > div > div > input:focus {
     border-color: #6c5ce7 !important;
     box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2) !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* File uploader dropzone styling */
+div[data-testid="stFileUploaderDropzone"] {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure that popups, dropdown lists, and options have dark text on their light/white background */
+div[data-baseweb="popover"] li,
+div[role="listbox"] li,
+div[role="listbox"] div,
+div[role="option"],
+div[role="option"] span,
+div[role="option"] div,
+ul[role="listbox"] li,
+ul[role="listbox"] li div,
+ul[role="listbox"] li span {
+    color: #1a1a1a !important;
+}
+
+/* Make sure hovered options inside dropdown popups look beautiful and readable */
+div[data-baseweb="popover"] li:hover,
+div[role="listbox"] li:hover,
+div[role="option"]:hover,
+ul[role="listbox"] li:hover {
+    background-color: rgba(108, 92, 231, 0.1) !important;
+    color: #6c5ce7 !important;
 }
 
 /* Divider styling */
