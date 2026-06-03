@@ -35,14 +35,29 @@ footer {
     visibility: hidden !important;
 }
 
-/* Custom CSS injection into the main Streamlit container */
-.stApp {
+/* Force dark background globally across all Streamlit layout wrappers */
+html, body, [data-testid="stAppViewContainer"], .stApp, [data-testid="stHeader"] {
     background-color: #0c091a !important;
     background-image: 
         radial-gradient(at 10% 20%, rgba(108, 92, 231, 0.08) 0px, transparent 50%),
         radial-gradient(at 90% 80%, rgba(0, 206, 201, 0.08) 0px, transparent 50%) !important;
     background-attachment: fixed !important;
     color: #e0e0ff !important;
+}
+
+/* Force all text elements, headings, paragraphs, lists, and labels to remain white/light */
+h1, h2, h3, h4, h5, h6, p, span, label, li, ul, ol, small, th, td, [data-testid="stWidgetLabel"] p, [data-testid="stMarkdownContainer"] p {
+    color: #e0e0ff !important;
+}
+
+/* Specific text inputs, textareas, and select box dropdown values */
+input, select, textarea, div[data-baseweb="select"] div {
+    color: #e0e0ff !important;
+}
+
+/* Force standard text inside sidebar to be readable */
+section[data-testid="stSidebar"] small {
+    color: #a0a0c0 !important;
 }
 
 /* Glassmorphism Cards */
