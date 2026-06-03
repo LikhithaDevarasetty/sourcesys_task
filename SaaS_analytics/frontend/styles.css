@@ -45,39 +45,55 @@ html, body, [data-testid="stAppViewContainer"], .stApp, [data-testid="stHeader"]
     color: #e0e0ff !important;
 }
 
-/* Force all text elements, headings, paragraphs, lists, and labels to remain white/light */
+/* Force all text elements, headings, paragraphs, lists, and labels to remain white/light in main area */
 h1, h2, h3, h4, h5, h6, p, span, label, li, ul, ol, small, th, td, [data-testid="stWidgetLabel"] p, [data-testid="stMarkdownContainer"] p {
     color: #e0e0ff !important;
 }
 
-/* Specific text inputs, textareas, and select box dropdown values */
-input, select, textarea, div[data-baseweb="select"] div {
-    color: #e0e0ff !important;
+/* Force inputs, selectboxes, and textareas to have white backgrounds with black text for maximum readability */
+input, select, textarea, div[data-baseweb="select"] div, div[data-baseweb="select"] span, [data-baseweb="input"] input {
+    color: #111111 !important;
 }
 
-/* Adjust colors specifically for system Light Mode theme to ensure black text on white backgrounds */
-@media (prefers-color-scheme: light) {
-    /* Inputs, select boxes, and textareas (which default to white backgrounds) */
-    input, select, textarea, div[data-baseweb="select"] div, div[data-baseweb="select"] span {
-        color: #111111 !important;
-    }
-    
-    /* Input placeholders */
-    input::placeholder, textarea::placeholder {
-        color: #636e72 !important;
-    }
-    
-    /* File uploader dropzone text, file list, upload labels, and upload buttons */
-    [data-testid="stFileUploaderDropzone"] span,
-    [data-testid="stFileUploaderDropzone"] p,
-    [data-testid="stFileUploaderDropzone"] button,
-    [data-testid="stFileUploaderDropzone"] button span,
-    [data-testid="stFileUploaderDropzone"] button p,
-    [data-testid="stFileUploaderDropzone"] small,
-    [data-testid="stFileUploaderDropzone"] label,
-    div[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
-        color: #111111 !important;
-    }
+input::placeholder, textarea::placeholder {
+    color: #7f8c8d !important;
+}
+
+/* Styling for text inputs, number inputs, selectbox wrapper headers to be light gray/white */
+div.stTextInput > div > div > input,
+div.stNumberInput > div > div > input,
+div[data-baseweb="select"] {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 8px !important;
+    color: #111111 !important;
+}
+
+/* File uploader dropzone and text styling */
+div[data-testid="stFileUploaderDropzone"],
+div[data-testid="stFileUploader"] {
+    background-color: #ffffff !important;
+    border: 1px dashed #ced4da !important;
+    border-radius: 12px !important;
+}
+
+/* Ensure all uploader button labels, descriptions, and helper text are black */
+[data-testid="stFileUploaderDropzone"] span,
+[data-testid="stFileUploaderDropzone"] p,
+[data-testid="stFileUploaderDropzone"] button,
+[data-testid="stFileUploaderDropzone"] button span,
+[data-testid="stFileUploaderDropzone"] button p,
+[data-testid="stFileUploaderDropzone"] small,
+[data-testid="stFileUploaderDropzone"] label,
+div[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+    color: #111111 !important;
+}
+
+/* Style the file uploader upload button itself */
+[data-testid="stFileUploaderDropzone"] button {
+    background-color: #f1f2f6 !important;
+    border: 1px solid #ced4da !important;
+    color: #111111 !important;
 }
 
 /* Force standard text inside sidebar to be readable */
@@ -258,28 +274,11 @@ div.stButton > button:active {
     transform: translateY(0px) !important;
 }
 
-/* TextInput, NumberInput, Selectbox, Multiselect, and FileUploader background overrides to keep them dark */
-div.stTextInput > div > div > input,
-div.stNumberInput > div > div > input,
-div[data-baseweb="select"],
-div[data-testid="stFileUploader"] {
-    background-color: rgba(255, 255, 255, 0.03) !important;
-    color: #e0e0ff !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 8px !important;
-}
-
+/* Form input focus styles */
 div.stTextInput > div > div > input:focus,
 div.stNumberInput > div > div > input:focus {
     border-color: #6c5ce7 !important;
     box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2) !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* File uploader dropzone styling */
-div[data-testid="stFileUploaderDropzone"] {
-    background-color: rgba(255, 255, 255, 0.02) !important;
-    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Ensure that popups, dropdown lists, and options have dark text on their light/white background */
